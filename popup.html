@@ -8,23 +8,31 @@
   <link rel="stylesheet" href="./name-paints.css">
 </head>
 <body><main>
-  <header><img src="./assets/looptv-logo.webp" alt="LoopTV" width="104" height="104"><span>v0.8 · Bêta</span></header>
-  <p>Sur Twitch, clique sur GIF pour rechercher une animation KLIPY dans le chat. Choisis-la, puis envoie avec Entrée.</p>
-  <label class="toggle"><input type="checkbox" id="enabled" checked> Activer les GIFs</label>
-  <label class="toggle"><input type="checkbox" id="allow-motion"> Animer même si Windows réduit les animations</label>
-  <section class="paint-settings" aria-label="Name Paints gratuits">
+  <header><img src="./assets/looptv-logo.webp" alt="LoopTV" width="70" height="70"><span>v0.8 · Bêta</span></header>
+  <nav class="popup-tabs" role="tablist" aria-label="Réglages LoopTV">
+    <button type="button" class="popup-tab" id="tab-gifs" role="tab" aria-controls="panel-gifs" aria-selected="true">GIFs</button>
+    <button type="button" class="popup-tab" id="tab-paints" role="tab" aria-controls="panel-paints" aria-selected="false" tabindex="-1">Couleurs</button>
+  </nav>
+  <section id="panel-gifs" role="tabpanel" aria-labelledby="tab-gifs">
+    <p>Clique sur GIF dans le chat Twitch, choisis une animation KLIPY, puis envoie avec Entrée.</p>
+    <label class="toggle"><input type="checkbox" id="enabled" checked> Activer les GIFs</label>
+    <label class="toggle"><input type="checkbox" id="allow-motion"> Animer même si Windows réduit les animations</label>
+    <p class="note">Aucun compte ni clé à saisir. Les recherches et GIFs viennent de KLIPY.</p>
+  </section>
+  <section id="panel-paints" role="tabpanel" aria-labelledby="tab-paints" hidden>
+  <div class="paint-settings" aria-label="Name Paints gratuits">
     <strong>Name Paints <small>GRATUIT</small></strong>
     <label class="toggle"><input type="checkbox" id="name-paints" checked> Pseudos en dégradé dans le chat</label>
-    <label class="toggle"><input type="checkbox" id="name-paints-animated"> Dégradés animés (si mouvement autorisé)</label>
+    <label class="toggle"><input type="checkbox" id="name-paints-animated"> Animer les dégradés</label>
     <div class="paint-preview" aria-live="polite"><span id="paint-preview-name">LoopTV</span><span> : GG 🔥</span></div>
     <label class="paint-label" for="paint-preview-input">Ton pseudo Twitch</label>
     <input id="paint-preview-input" type="text" maxlength="40" placeholder="Ex. ShinraTensei" autocomplete="off" spellcheck="false">
     <div class="paint-label" id="paint-palette-label">Choisis ton dégradé</div>
     <div id="paint-palette-list" class="paint-palette-list" role="group" aria-labelledby="paint-palette-label"></div>
-    <p class="note" id="paint-choice-note">Choix personnel enregistré sur ce navigateur.</p>
-    <p class="note">Pour influencer ton dégradé <strong>chez tous les utilisateurs LoopTV</strong>, change la couleur de ton pseudo dans les réglages Twitch. Sans compte ni serveur LoopTV, les palettes choisies ici restent locales.</p>
+    <p class="note" id="paint-choice-note">Ton choix est local.</p>
+    <p class="note">Pour être vu des autres, choisis ta couleur Twitch et laisse le mode Auto.</p>
+  </div>
   </section>
-  <p class="note">Pas de compte ni clé à saisir pour les spectateurs. KLIPY héberge les GIFs et traite les recherches et requêtes médias.</p>
   <footer>Powered by KLIPY · extension indépendante</footer>
 </main><script src="./name-paints.js"></script><script src="./popup.js"></script></body>
 </html>

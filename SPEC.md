@@ -157,6 +157,8 @@ Services externes minimaux
 - [x] Association automatique d'une palette à la couleur native du pseudo Twitch lorsqu'elle est présente : une couleur Twitch différente peut entraîner un dégradé différent chez tous les utilisateurs équipés, sans backend.
 - [x] Restauration de la couleur Twitch native à la désactivation, respect des animations réduites.
 - [x] Tests unitaires et tests Selenium de simulation Twitch/popup, avec régressions GIF, et chargement des paquets sur Brave, Edge et Firefox.
+- [x] Inspection en lecture seule du chat Twitch réel : un unique pseudo à peindre par message, sans doubler le conteneur parent et la feuille ; couleur calculée en fallback.
+- [x] Interface popup compacte par onglets **GIFs / Couleurs**, navigation clavier, restauration du dernier onglet et du dégradé sélectionné.
 - [ ] Validation d'affichage dans différents chats Twitch réels et coexistence avec les styles 7TV/BTTV.
 - [ ] Choix personnel LoopTV synchronisé entre utilisateurs indépendamment de la couleur Twitch : nécessite un mécanisme de synchronisation et une identité fiable.
 

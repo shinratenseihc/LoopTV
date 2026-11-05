@@ -8,6 +8,29 @@ const paletteList = document.querySelector("#paint-palette-list");
 const paintChoiceNote = document.querySelector("#paint-choice-note");
 const motion = matchMedia("(prefers-reduced-motion: reduce)");
 let namePaintPalette = "auto";
+const tabButtons = [...document.querySelectorAll(".popup-tab")];
+
+function showTab(name, save = true) {
+  const selected = name === "paints" ? "paints" : "gifs";
+  for (const button of tabButtons) {
+    const active = button.id === `tab-${selected}`;
+    button.setAttribute("aria-selected", String(active));
+    button.tabIndex = active ? 0 : -1;
+    document.querySelector(`#panel-${button.id.slice(4)}`).hidden = !active;
+  }
+  if (save) chrome.storage.local.set({ popupTab: selected });
+}
+
+for (const button of tabButtons) {
+  button.addEventListener("click", () => showTab(button.id.slice(4)));
+  button.addEventListener("keydown", event => {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+    event.preventDefault();
+    const next = event.key === "Home" || event.key === "ArrowLeft" ? tabButtons[0] : tabButtons[1];
+    showTab(next.id.slice(4));
+    next.focus();
+  });
+}
 
 const availablePalettes = [{ id: "auto", label: "Auto" }, ...LoopTVNamePaints.palettes];
 for (const palette of availablePalettes) {
@@ -42,13 +65,15 @@ function updatePreview() {
   for (const button of paletteList.children) {
     button.setAttribute("aria-pressed", String(button.dataset.paletteId === namePaintPalette));
   }
-  paintChoiceNote.textContent = previewInput.value.trim()
-    ? "Ton choix pour ce pseudo est enregistré sur ce navigateur uniquement."
-    : "Entre ton pseudo Twitch pour appliquer ton choix dans ton chat.";
+  paintChoiceNote.textContent = namePaintPalette === "auto"
+    ? "Auto : l'aperçu est indicatif, Twitch peut choisir un autre dégradé."
+    : previewInput.value.trim()
+      ? "Choix local : visible seulement chez toi."
+      : "Entre ton pseudo pour appliquer ce choix dans ton chat.";
 }
 
 chrome.storage.local.get({ enabled: true, allowMotion: false, namePaintsEnabled: true,
-  namePaintsAnimated: false, namePaintTarget: "", namePaintPalette: "auto" }, settings => {
+  namePaintsAnimated: false, namePaintTarget: "", namePaintPalette: "auto", popupTab: "gifs" }, settings => {
   enabled.checked = settings.enabled !== false;
   allowMotion.checked = settings.allowMotion === true;
   namePaintsEnabled.checked = settings.namePaintsEnabled !== false;
@@ -56,6 +81,7 @@ chrome.storage.local.get({ enabled: true, allowMotion: false, namePaintsEnabled:
   previewInput.value = typeof settings.namePaintTarget === "string" ? settings.namePaintTarget : "";
   namePaintPalette = availablePalettes.some(palette => palette.id === settings.namePaintPalette)
     ? settings.namePaintPalette : "auto";
+  showTab(settings.popupTab, false);
   updatePreview();
 });
 enabled.addEventListener("change", () => chrome.storage.local.set({ enabled: enabled.checked }));

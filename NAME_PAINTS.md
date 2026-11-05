@@ -9,7 +9,8 @@ Cette fonctionnalité est **expérimentale**, sur la branche `feat/free-name-pai
 - **Choix partagé sans serveur :** si le pseudo est peint à partir de sa couleur Twitch native, modifier cette couleur dans Twitch change la palette visible chez les autres spectateurs équipés de LoopTV, tant qu'ils reçoivent bien cette couleur dans le chat. Le choix direct parmi les 8 palettes **n'est pas synchronisé** entre spectateurs.
 - Le réglage **Pseudos en dégradé** permet de désactiver entièrement l'effet et de restaurer la couleur native de Twitch.
 - Le réglage **Dégradés animés** anime lentement le fond ; désactivé par défaut, il respecte `prefers-reduced-motion`.
-- La popup affiche un **aperçu** du pseudo entré et les 9 options en boutons colorés. Elle mémorise le pseudo ciblé et sa palette **uniquement localement**, sans les transmettre.
+- La popup sépare les réglages en deux onglets **GIFs** et **Couleurs**, accessibles au clavier. Elle affiche un **aperçu** du pseudo entré et les 9 options en boutons colorés. Elle mémorise le pseudo ciblé, sa palette et l'onglet actif **uniquement localement**, sans les transmettre.
+- En mode Auto, **l'aperçu est indicatif** : la couleur Twitch réelle peut sélectionner une autre palette dans le chat.
 - Aucune permission supplémentaire, télémétrie, API tierce ou transmission de pseudos vers LoopTV. Les préférences et le pseudo ciblé sont sauvegardés dans le navigateur (`chrome.storage.local`).
 - Les GIFs, les marqueurs `[gifrift:k:ID]`, les préférences d'animation GIF et le quota KLIPY fonctionnent indépendamment.
 
@@ -17,7 +18,7 @@ Cette fonctionnalité est **expérimentale**, sur la branche `feat/free-name-pai
 
 - Les palettes sont **originales** et générées localement. Elles ne copient pas les textures 7TV/BTTV ni ne débloquent leurs cosmétiques premium.
 - Les huit boutons ne publient **pas** le choix manuel pour les autres spectateurs. Le choix visible entre navigateurs passe uniquement par la couleur Twitch native, pas par un réglage LoopTV partagé. Une palette LoopTV choisie et synchronisée indépendamment de Twitch nécessiterait une association d'identité et un stockage/protocole de partage.
-- La version 0.8.0 a été testée contre un DOM Twitch simulé, et non encore contre tous les thèmes et variantes de l'interface Twitch réelle. Les autres extensions qui stylisent les noms peuvent entrer en conflit avec la priorité CSS ; désactiver l'un des deux réglages de peinture dans ce cas.
+- Les sélecteurs ont été comparés au **DOM réel d'un chat Twitch actif** (lecture seule, aucun message envoyé). Twitch y imbrique le pseudo dans un conteneur distinct ; le rendu ne cible maintenant **qu'un seul élément par pseudo** et utilise la couleur CSS calculée si nécessaire. Les tests automatiques simulent un chat avec 100 messages supplémentaires, suppression et réutilisation de lignes. La version 0.8.0 n'a pas encore été intégralement testée dans les différentes variantes d'un chat Twitch réel. Les autres extensions qui stylisent les noms peuvent entrer en conflit avec la priorité CSS ; désactiver l'un des deux réglages de peinture dans ce cas.
 
 ## Vérifier
 

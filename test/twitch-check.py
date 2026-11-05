@@ -73,7 +73,11 @@ try:
     assert js("getComputedStyle(document.querySelector('.gifrift-button')).borderRadius") == "9000px"
     assert js("getComputedStyle(document.querySelector('.gifrift-button')).backgroundColor") == "rgb(145, 71, 255)"
 
-    assert js("document.querySelectorAll('.looptv-name-paint').length") == 2
+    assert js("document.querySelectorAll('.looptv-name-paint').length") == 3
+    assert js("!document.querySelector('#paint-row .chat-line__username').classList.contains('looptv-name-paint')"), "Never apply paint to both Twitch username wrapper and leaf"
+    assert js("document.querySelectorAll('#paint-row .looptv-name-paint').length") == 1, "One painted element per author"
+    assert js("document.querySelector('#paint-row-alt [data-a-target=chat-message-username]').style.getPropertyValue('--looptv-name-gradient')") == js("LoopTVNamePaints.gradientFor('Viewer123','auto','rgb(0, 128, 255)')"), "Use computed CSS color when no inline color exists"
+    assert js("document.querySelector('#paint-row-legacy .chat-line__username').classList.contains('looptv-name-paint')"), "Support legacy markup with username wrapper only"
     assert js("getComputedStyle(document.querySelector('#paint-row .chat-author__display-name')).backgroundImage.startsWith('linear-gradient')")
     assert js("getComputedStyle(document.querySelector('#paint-row .chat-author__display-name')).webkitTextFillColor") == "rgba(0, 0, 0, 0)"
     assert js("!document.querySelector('#paint-row .text-fragment').classList.contains('looptv-name-paint')"), "Message body must not be painted"
@@ -100,7 +104,7 @@ try:
     assert js("document.querySelectorAll('.looptv-name-paint').length") == 0, "Opt-out must remove paint styling"
     browser.execute_script("window.notifyStorage({namePaintsEnabled:{newValue:true},namePaintsAnimated:{newValue:false}},'local')")
     time.sleep(.1)
-    assert js("document.querySelectorAll('.looptv-name-paint').length") == 2
+    assert js("document.querySelectorAll('.looptv-name-paint').length") == 3
     browser.execute_script("document.querySelector('#paint-row .chat-author__display-name').textContent='NewName'")
     time.sleep(.1)
     assert js("document.querySelector('#paint-row .chat-author__display-name').dataset.looptvPaintName") == "NewName", "Recycled rows need a fresh gradient"
@@ -161,15 +165,24 @@ try:
       for (let n=0;n<100;n++) {
         const row=document.createElement('div');
         row.className='chat-line__message';
+        const outer=document.createElement('span');
+        outer.className='chat-line__username';
+        const author=document.createElement('span');
+        author.className='chat-author__display-name';
+        author.textContent='Viewer'+n;
+        author.style.color=n%2 ? 'rgb(255,105,180)' : 'rgb(100,150,255)';
+        outer.append(author);
         const text=document.createElement('span');
         text.className='text-fragment';
         text.textContent=n%2 ? 'message normal' : '[gifrift:k:1234567890123456]';
-        row.append(text);frag.append(row);
+        row.append(outer,text);frag.append(row);
       }
       document.querySelector('#fixture-chat').append(frag);
     """)
     time.sleep(.3)
     assert count() == 6, ("max six GIFs", count())
+    assert js("document.querySelectorAll('#fixture-chat .looptv-name-paint').length") == 103, "100 busy-chat usernames must be painted once each"
+    assert js("document.querySelectorAll('#fixture-chat .chat-line__username.looptv-name-paint').length") == 1, "Do not paint nested wrappers during chat bursts"
     before = js("window.apiRequests.filter(x=>x.action==='resolve').length")
     browser.execute_script("document.querySelector('#fixture-chat').append(document.createElement('p'))")
     time.sleep(.2)
@@ -179,6 +192,7 @@ try:
     browser.execute_script("document.querySelector('#fixture-chat').replaceChildren()")
     time.sleep(.2)
     assert count() == 0, "Deleting messages must delete images"
+    assert js("document.querySelectorAll('#fixture-chat .looptv-name-paint').length") == 0, "Removed users must not leave paint nodes behind"
     browser.execute_script("""
       const row=document.createElement('div');
       row.className='chat-line__message';

@@ -8,6 +8,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.keys import Keys
 
 options = Options()
 options.add_argument("--headless=new")
@@ -55,16 +56,27 @@ try:
     reduced = inspect()
     assert reduced["images"] == 0, reduced
     browser.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {"source": """
-      window.savedSettings = {};
+      window.savedSettings = JSON.parse(localStorage.getItem('looptv-test-settings') || '{}');
       window.chrome = {storage: {local: {
-        get: (_defaults, callback) => callback({enabled: true, allowMotion: false, namePaintsEnabled: true}),
-        set: async values => { Object.assign(window.savedSettings, values); }
+        get: (defaults, callback) => callback({ ...defaults, ...window.savedSettings }),
+        set: async values => {
+          Object.assign(window.savedSettings, values);
+          localStorage.setItem('looptv-test-settings', JSON.stringify(window.savedSettings));
+        }
       }}};
     """})
     browser.get(f"http://127.0.0.1:{server.server_port}/popup.html")
     browser.find_element("id", "enabled").click()
     saved = browser.execute_script("return window.savedSettings.enabled")
     assert saved is False, "Settings were not saved"
+    assert browser.execute_script("return !document.querySelector('#panel-gifs').hidden"), "GIF tab should open by default"
+    browser.find_element("id", "tab-paints").click()
+    assert browser.execute_script("return document.querySelector('#panel-gifs').hidden && !document.querySelector('#panel-paints').hidden"), "Only paint settings should be visible"
+    assert browser.execute_script("return window.savedSettings.popupTab") == "paints", "Selected settings tab not saved"
+    browser.find_element("id", "tab-paints").send_keys(Keys.ARROW_LEFT)
+    assert browser.execute_script("return !document.querySelector('#panel-gifs').hidden"), "ArrowLeft should open the GIF settings tab"
+    browser.find_element("id", "tab-gifs").send_keys(Keys.ARROW_RIGHT)
+    assert browser.execute_script("return !document.querySelector('#panel-paints').hidden"), "ArrowRight should return to color settings"
     assert browser.execute_script("return getComputedStyle(document.querySelector('#paint-preview-name')).backgroundImage.startsWith('linear-gradient')"), "Paint preview not rendered"
     assert browser.execute_script("return document.querySelectorAll('.paint-palette-choice').length") == 9, "Eight presets plus automatic choice expected"
     browser.find_element("id", "paint-preview-input").send_keys("ShinraTensei")
@@ -76,6 +88,11 @@ try:
     browser.find_element("id", "name-paints").click()
     assert browser.execute_script("return window.savedSettings.namePaintsEnabled") is False, "Paint preference was not saved"
     assert browser.execute_script("return !document.querySelector('#paint-preview-name').classList.contains('looptv-name-paint')"), "Paint preview off must be unstyled"
+    browser.refresh()
+    assert browser.execute_script("return document.querySelector('#tab-paints').getAttribute('aria-selected')") == "true", "Current tab must persist across popup reopening"
+    assert browser.execute_script("return document.querySelector('#paint-preview-input').value") == "ShinraTensei", "Target username must persist"
+    assert browser.execute_script("return document.querySelector('[data-palette-id=lagoon]').getAttribute('aria-pressed')") == "true", "Chosen palette must persist"
+    assert browser.execute_script("return document.documentElement.scrollWidth <= window.innerWidth"), "Popup must fit horizontally"
     print(json.dumps({"initial": start, "disabled": off, "stress": loaded, "cleared": cleared, "reduced": reduced}, ensure_ascii=False))
 finally:
     browser.quit()

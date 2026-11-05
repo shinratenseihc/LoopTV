@@ -13,7 +13,13 @@ globalThis.LoopTVNamePaints = (() => {
     { id: "electric", label: "Électrique", hue: 222, colors: ["#7cc7ff", "#6d96ff", "#be87ff"] },
     { id: "gold", label: "Soleil", hue: 60, colors: ["#ffca71", "#ffd65c", "#97ffb0"] }
   ];
-  const usernameSelector = '.chat-author__display-name, .chat-line__username, [data-a-target="chat-message-username"]';
+  // Twitch nests the display-name inside .chat-line__username. Painting both
+  // produces two gradients on the same name, so always choose one leaf.
+  const usernameSelectors = [
+    '.chat-author__display-name',
+    '[data-a-target="chat-message-username"]',
+    '.chat-line__username'
+  ];
   const rowSelector = '.chat-line__message, [data-a-target="chat-line-message"]';
 
   function normalize(name) {
@@ -82,26 +88,32 @@ globalThis.LoopTVNamePaints = (() => {
     const animate = animated && !reducedMotion;
     const target = normalize(targetName);
     for (const row of root.querySelectorAll(rowSelector)) {
-      for (const element of row.querySelectorAll(usernameSelector)) {
-        const name = element.textContent.trim().replace(/:$/, "").trim();
-        const selected = target && target === normalize(name) ? paletteId : "auto";
-        const nativeColor = element.style.color;
-        const signature = `${name}|${selected}|${nativeColor}`;
-        if (signature === element.dataset.looptvPaintSignature && element.classList.contains("looptv-name-paint")) {
-          element.classList.toggle("looptv-name-paint-motion", animate);
-          continue;
-        }
-        const gradient = gradientFor(name, selected, nativeColor);
-        if (!gradient) {
-          if (element.classList.contains("looptv-name-paint")) clear(element);
-          continue;
-        }
-        element.style.setProperty("--looptv-name-gradient", gradient);
-        element.dataset.looptvPaintName = name;
-        element.dataset.looptvPaintSignature = signature;
-        element.classList.add("looptv-name-paint");
-        element.classList.toggle("looptv-name-paint-motion", animate);
+      const element = usernameSelectors.map(selector => row.querySelector(selector)).find(Boolean);
+      if (!element) continue;
+      // Remove any paint left on a wrapper by earlier experimental builds.
+      for (const wrapper of row.querySelectorAll(".looptv-name-paint")) {
+        if (wrapper !== element) clear(wrapper);
       }
+      const name = element.textContent.trim().replace(/:$/, "").trim();
+      const selected = target && target === normalize(name) ? paletteId : "auto";
+      // Twitch usually sets inline colors; computed style is a safe fallback
+      // for class-based colors, while neutral text colors fall back to the hash.
+      const nativeColor = element.style.color || getComputedStyle(element).color;
+      const signature = `${name}|${selected}|${nativeColor}`;
+      if (signature === element.dataset.looptvPaintSignature && element.classList.contains("looptv-name-paint")) {
+        element.classList.toggle("looptv-name-paint-motion", animate);
+        continue;
+      }
+      const gradient = gradientFor(name, selected, nativeColor);
+      if (!gradient) {
+        if (element.classList.contains("looptv-name-paint")) clear(element);
+        continue;
+      }
+      element.style.setProperty("--looptv-name-gradient", gradient);
+      element.dataset.looptvPaintName = name;
+      element.dataset.looptvPaintSignature = signature;
+      element.classList.add("looptv-name-paint");
+      element.classList.toggle("looptv-name-paint-motion", animate);
     }
   }
 
