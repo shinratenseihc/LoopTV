@@ -15,6 +15,8 @@
   let allowMotion = false;
   let namePaintsEnabled = true;
   let namePaintsAnimated = false;
+  let namePaintTarget = "";
+  let namePaintPalette = "auto";
   let queued = false;
   let knownInput = null;
   let knownButton = null;
@@ -289,7 +291,9 @@
     globalThis.LoopTVNamePaints.sync(document, {
       enabled: namePaintsEnabled,
       animated: namePaintsAnimated,
-      reducedMotion: motion.matches
+      reducedMotion: motion.matches,
+      targetName: namePaintTarget,
+      paletteId: namePaintPalette
     });
     const input = document.querySelector(INPUT_SELECTOR);
     const bar = document.querySelector(BUTTONS_SELECTOR);
@@ -358,11 +362,14 @@
     requestAnimationFrame(update);
   }
   motion.addEventListener("change", schedule);
-  chrome.storage.local.get({ enabled: true, allowMotion: false, namePaintsEnabled: true, namePaintsAnimated: false }, settings => {
+  chrome.storage.local.get({ enabled: true, allowMotion: false, namePaintsEnabled: true, namePaintsAnimated: false,
+    namePaintTarget: "", namePaintPalette: "auto" }, settings => {
     enabled = settings.enabled !== false;
     allowMotion = settings.allowMotion === true;
     namePaintsEnabled = settings.namePaintsEnabled !== false;
     namePaintsAnimated = settings.namePaintsAnimated === true;
+    namePaintTarget = typeof settings.namePaintTarget === "string" ? settings.namePaintTarget : "";
+    namePaintPalette = typeof settings.namePaintPalette === "string" ? settings.namePaintPalette : "auto";
     schedule();
   });
   chrome.storage.onChanged.addListener((changes, area) => {
@@ -371,6 +378,8 @@
     if (changes.allowMotion) allowMotion = changes.allowMotion.newValue === true;
     if (changes.namePaintsEnabled) namePaintsEnabled = changes.namePaintsEnabled.newValue !== false;
     if (changes.namePaintsAnimated) namePaintsAnimated = changes.namePaintsAnimated.newValue === true;
+    if (changes.namePaintTarget) namePaintTarget = typeof changes.namePaintTarget.newValue === "string" ? changes.namePaintTarget.newValue : "";
+    if (changes.namePaintPalette) namePaintPalette = typeof changes.namePaintPalette.newValue === "string" ? changes.namePaintPalette.newValue : "auto";
     schedule();
   });
   new MutationObserver(schedule).observe(document.documentElement, {

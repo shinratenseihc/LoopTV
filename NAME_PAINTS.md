@@ -4,17 +4,19 @@ Cette fonctionnalité est **expérimentale**, sur la branche `feat/free-name-pai
 
 ## Fonctionnement
 
-- Les pseudos des messages Twitch reçoivent un dégradé coloré gratuit. Le nom (casse et Unicode normalisés) détermine la palette et l'angle du dégradé ; tous les navigateurs LoopTV 0.8.0 obtiennent le **même résultat pour le même pseudo**, sans serveur.
+- Les pseudos des messages Twitch reçoivent un dégradé coloré gratuit. La couleur native du chat Twitch, lorsqu'elle est accessible dans le style du pseudo, sélectionne une des 8 palettes. Sinon, un hash du pseudo (casse et Unicode normalisés) fournit une palette stable. Le pseudo détermine également l'angle du dégradé.
+- **8 palettes au choix + mode Auto.** Dans la popup, saisis ton pseudo Twitch et sélectionne un dégradé : le réglage s'applique uniquement aux messages de ce pseudo **dans ton navigateur**. Les autres pseudos restent en mode automatique.
+- **Choix partagé sans serveur :** si le pseudo est peint à partir de sa couleur Twitch native, modifier cette couleur dans Twitch change la palette visible chez les autres spectateurs équipés de LoopTV, tant qu'ils reçoivent bien cette couleur dans le chat. Le choix direct parmi les 8 palettes **n'est pas synchronisé** entre spectateurs.
 - Le réglage **Pseudos en dégradé** permet de désactiver entièrement l'effet et de restaurer la couleur native de Twitch.
 - Le réglage **Dégradés animés** anime lentement le fond ; désactivé par défaut, il respecte `prefers-reduced-motion`.
-- La popup affiche un **aperçu** d'un pseudo de démonstration modifiable, sans enregistrer ni transmettre sa valeur.
-- Aucune permission supplémentaire, télémétrie, API tierce ou transmission de pseudos. Les préférences sont sauvegardées dans le navigateur (`chrome.storage.local`).
+- La popup affiche un **aperçu** du pseudo entré et les 9 options en boutons colorés. Elle mémorise le pseudo ciblé et sa palette **uniquement localement**, sans les transmettre.
+- Aucune permission supplémentaire, télémétrie, API tierce ou transmission de pseudos vers LoopTV. Les préférences et le pseudo ciblé sont sauvegardés dans le navigateur (`chrome.storage.local`).
 - Les GIFs, les marqueurs `[gifrift:k:ID]`, les préférences d'animation GIF et le quota KLIPY fonctionnent indépendamment.
 
 ## Limites de cette première version
 
 - Les palettes sont **originales** et générées localement. Elles ne copient pas les textures 7TV/BTTV ni ne débloquent leurs cosmétiques premium.
-- L'effet est automatique pour chaque pseudo affiché. Chaque utilisateur **ne choisit pas encore un effet personnel synchronisé** avec les autres utilisateurs. Pour cela il faudrait un mécanisme d'association de compte et de synchronisation, ou un protocole de partage convenu.
+- Les huit boutons ne publient **pas** le choix manuel pour les autres spectateurs. Le choix visible entre navigateurs passe uniquement par la couleur Twitch native, pas par un réglage LoopTV partagé. Une palette LoopTV choisie et synchronisée indépendamment de Twitch nécessiterait une association d'identité et un stockage/protocole de partage.
 - La version 0.8.0 a été testée contre un DOM Twitch simulé, et non encore contre tous les thèmes et variantes de l'interface Twitch réelle. Les autres extensions qui stylisent les noms peuvent entrer en conflit avec la priorité CSS ; désactiver l'un des deux réglages de peinture dans ce cas.
 
 ## Vérifier

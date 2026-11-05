@@ -21,3 +21,24 @@ test("Name Paints reject invalid or excessive names and cannot generate executab
   assert.equal(paints.gradientFor("x".repeat(81)), null);
   assert.match(paints.gradientFor("a');background:url(https://invalid.example)"), /^linear-gradient\([#0-9a-z, ]+\)$/);
 });
+
+test("eight free palettes can be selected without arbitrary CSS", () => {
+  assert.equal(paints.palettes.length, 8);
+  const styles = new Set(paints.palettes.map(palette => paints.gradientFor("ShinraTensei", palette.id)));
+  assert.equal(styles.size, 8);
+  assert.equal(paints.gradientFor("SHINRATENSEI", "neon"), paints.gradientFor("shinratensei", "neon"));
+  assert.equal(paints.gradientFor("ShinraTensei", "invalid'); background:url(https://example.com)"),
+    paints.gradientFor("ShinraTensei"));
+});
+
+test("Twitch native colors select the same gradient on different clients", () => {
+  assert.equal(paints.paletteFromTwitchColor("#ff0000"), "ember");
+  assert.equal(paints.paletteFromTwitchColor("rgb(255, 0, 0)"), "ember");
+  assert.equal(paints.paletteFromTwitchColor("#808080"), null);
+  assert.equal(paints.paletteFromTwitchColor("url(https://example.com)"), null);
+  assert.equal(paints.paletteFromTwitchColor("rgb(500, 0, 0)"), null);
+  assert.equal(paints.gradientFor("ShinraTensei", "auto", "#ff0000"),
+    paints.gradientFor("ShinraTensei", "ember"));
+  assert.notEqual(paints.gradientFor("ShinraTensei", "auto", "#ff0000"),
+    paints.gradientFor("ShinraTensei", "auto", "#0000ff"));
+});

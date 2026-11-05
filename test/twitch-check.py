@@ -79,6 +79,19 @@ try:
     assert js("!document.querySelector('#paint-row .text-fragment').classList.contains('looptv-name-paint')"), "Message body must not be painted"
     assert js("!document.querySelector('#paint-row .chat-author__display-name').classList.contains('looptv-name-paint-motion')")
     assert js("document.querySelector('#paint-row .chat-author__display-name').style.color") == 'rgb(255, 0, 0)', "Must preserve Twitch's native name color"
+    assert js("document.querySelector('#paint-row .chat-author__display-name').style.getPropertyValue('--looptv-name-gradient')") == js("LoopTVNamePaints.gradientFor('ShinraTensei','auto','rgb(255, 0, 0)')"), "Twitch's native color must determine the shared automatic gradient"
+    other_before = js("document.querySelector('#paint-row-alt [data-a-target=chat-message-username]').style.getPropertyValue('--looptv-name-gradient')")
+    browser.execute_script("window.notifyStorage({namePaintTarget:{newValue:'shinratensei'},namePaintPalette:{newValue:'lagoon'}},'local')")
+    time.sleep(.1)
+    assert js("document.querySelector('#paint-row .chat-author__display-name').style.getPropertyValue('--looptv-name-gradient')") == js("LoopTVNamePaints.gradientFor('ShinraTensei','lagoon')"), "Chosen palette applies to the selected name"
+    assert js("document.querySelector('#paint-row-alt [data-a-target=chat-message-username]').style.getPropertyValue('--looptv-name-gradient')") == other_before, "Other names keep their existing paints"
+    browser.execute_script("window.notifyStorage({namePaintPalette:{newValue:'auto'}},'local')")
+    time.sleep(.1)
+    assert js("document.querySelector('#paint-row .chat-author__display-name').style.getPropertyValue('--looptv-name-gradient')") == js("LoopTVNamePaints.gradientFor('ShinraTensei','auto','rgb(255, 0, 0)')"), "Auto restores shared Twitch-derived palette"
+    browser.execute_script("document.querySelector('#paint-row .chat-author__display-name').style.color='rgb(0, 0, 255)'; document.body.append(document.createElement('hr'))")
+    time.sleep(.1)
+    assert js("document.querySelector('#paint-row .chat-author__display-name').style.getPropertyValue('--looptv-name-gradient')") == js("LoopTVNamePaints.gradientFor('ShinraTensei','auto','rgb(0, 0, 255)')"), "Twitch color updates the gradient without another service"
+    browser.execute_script("document.querySelector('#paint-row .chat-author__display-name').style.color='rgb(255, 0, 0)'; document.body.append(document.createElement('hr'))")
     browser.execute_script("window.notifyStorage({namePaintsAnimated:{newValue:true}},'local')")
     time.sleep(.1)
     assert js("document.querySelector('#paint-row .chat-author__display-name').classList.contains('looptv-name-paint-motion')")
@@ -207,7 +220,7 @@ try:
     assert js("document.querySelector('.gifrift-picker').hidden") is True
     print(json.dumps({"picker":"integrated", "page_count":18, "slate":"enter works", "max_gifs":6,
         "deletion":True, "motion":True, "channel_change":True, "stale_search":True,
-        "draft_preserved":True, "name_paints":"deterministic + opt-out + motion"}, ensure_ascii=False))
+        "draft_preserved":True, "name_paints":"selectable local palettes + native Twitch color + opt-out + motion"}, ensure_ascii=False))
 finally:
     browser.quit()
     server.shutdown()

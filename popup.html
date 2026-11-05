@@ -17,8 +17,12 @@
     <label class="toggle"><input type="checkbox" id="name-paints" checked> Pseudos en dégradé dans le chat</label>
     <label class="toggle"><input type="checkbox" id="name-paints-animated"> Dégradés animés (si mouvement autorisé)</label>
     <div class="paint-preview" aria-live="polite"><span id="paint-preview-name">LoopTV</span><span> : GG 🔥</span></div>
-    <input id="paint-preview-input" type="text" maxlength="40" value="LoopTV" aria-label="Pseudo à prévisualiser" spellcheck="false">
-    <p class="note">Chaque pseudo reçoit son dégradé, calculé localement. Aucun compte ni serveur. Le choix d'un dégradé personnel synchronisé viendra plus tard.</p>
+    <label class="paint-label" for="paint-preview-input">Ton pseudo Twitch</label>
+    <input id="paint-preview-input" type="text" maxlength="40" placeholder="Ex. ShinraTensei" autocomplete="off" spellcheck="false">
+    <div class="paint-label" id="paint-palette-label">Choisis ton dégradé</div>
+    <div id="paint-palette-list" class="paint-palette-list" role="group" aria-labelledby="paint-palette-label"></div>
+    <p class="note" id="paint-choice-note">Choix personnel enregistré sur ce navigateur.</p>
+    <p class="note">Pour influencer ton dégradé <strong>chez tous les utilisateurs LoopTV</strong>, change la couleur de ton pseudo dans les réglages Twitch. Sans compte ni serveur LoopTV, les palettes choisies ici restent locales.</p>
   </section>
   <p class="note">Pas de compte ni clé à saisir pour les spectateurs. KLIPY héberge les GIFs et traite les recherches et requêtes médias.</p>
   <footer>Powered by KLIPY · extension indépendante</footer>

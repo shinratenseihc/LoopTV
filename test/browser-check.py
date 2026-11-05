@@ -66,6 +66,13 @@ try:
     saved = browser.execute_script("return window.savedSettings.enabled")
     assert saved is False, "Settings were not saved"
     assert browser.execute_script("return getComputedStyle(document.querySelector('#paint-preview-name')).backgroundImage.startsWith('linear-gradient')"), "Paint preview not rendered"
+    assert browser.execute_script("return document.querySelectorAll('.paint-palette-choice').length") == 9, "Eight presets plus automatic choice expected"
+    browser.find_element("id", "paint-preview-input").send_keys("ShinraTensei")
+    assert browser.execute_script("return window.savedSettings.namePaintTarget") == "ShinraTensei", "Name target not saved"
+    browser.find_element("css selector", '[data-palette-id="lagoon"]').click()
+    assert browser.execute_script("return window.savedSettings.namePaintPalette") == "lagoon", "Selected gradient not saved"
+    assert browser.execute_script("return document.querySelector('[data-palette-id=lagoon]').getAttribute('aria-pressed')") == "true", "Palette must be visibly selected"
+    assert browser.execute_script("return document.querySelector('#paint-preview-name').style.getPropertyValue('--looptv-name-gradient') === LoopTVNamePaints.gradientFor('ShinraTensei','lagoon')"), "Live palette preview incorrect"
     browser.find_element("id", "name-paints").click()
     assert browser.execute_script("return window.savedSettings.namePaintsEnabled") is False, "Paint preference was not saved"
     assert browser.execute_script("return !document.querySelector('#paint-preview-name').classList.contains('looptv-name-paint')"), "Paint preview off must be unstyled"
