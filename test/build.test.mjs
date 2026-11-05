@@ -10,9 +10,7 @@ test("Chromium and Firefox share the same application and Twitch content script"
   assert.deepEqual(chromium.content_scripts, firefox.content_scripts);
   assert.deepEqual(chromium.content_scripts[0].js, ["name-paints.js", "twitch.js"]);
   assert.deepEqual(chromium.content_scripts[0].css, ["twitch.css", "name-paints.css"]);
-  assert.deepEqual(chromium.content_scripts[1].matches, ["https://chat.johnnycyan.com/v2/*"]);
-  assert.deepEqual(chromium.content_scripts[1].js, ["cyan-chat.js"]);
-  assert.deepEqual(chromium.content_scripts[1].css, ["cyan-chat.css"]);
+  assert.equal(chromium.content_scripts.length, 1, "LoopTV must not inject into personal overlay sites");
   assert.equal(chromium.version, "0.8.0");
   assert.equal(chromium.background.service_worker, "background.js");
   assert.equal(chromium.background.type, "module");

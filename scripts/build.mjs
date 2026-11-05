@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const dist = join(root, "dist");
-const files = ["background.js", "klipy-api.js", "klipy-config.js", "popup.html", "popup.js", "popup.css", "twitch.js", "twitch.css", "name-paints.js", "name-paints.css", "cyan-chat.js", "cyan-chat.css", "assets/demo.gif", "assets/looptv-logo.webp"];
+const files = ["background.js", "klipy-api.js", "klipy-config.js", "popup.html", "popup.js", "popup.css", "twitch.js", "twitch.css", "name-paints.js", "name-paints.css", "assets/demo.gif", "assets/looptv-logo.webp"];
 const icons = [16, 48, 96, 128].map(n => `icons/icon-${n}.png`);
 
 function createManifest(firefox) {

@@ -13,14 +13,9 @@ const clientReady = fetch(chrome.runtime.getURL("klipy-config.js"))
 const inflight = new Map();
 
 chrome.runtime.onMessage.addListener((message, sender, respond) => {
-  if (message?.type !== "klipy") return;
-  const twitch = sender.url?.startsWith("https://www.twitch.tv/");
-  const cyan = /^https:\/\/chat\.johnnycyan\.com\/v2(?:\/|\?|$)/.test(sender.url ?? "");
-  if (!twitch && !cyan) return;
+  if (message?.type !== "klipy" || !sender.url?.startsWith("https://www.twitch.tv/")) return;
   let task;
   if (message.action === "browse") {
-    // The transparent overlay only needs to resolve marker IDs, not browse.
-    if (!twitch) return respond({ error: "invalid-action" }), false;
     if (typeof message.query !== "string" || typeof message.pos !== "string") return respond({ error: "invalid-query" }), false;
     task = () => clientReady.then(client => client.browse(message.query, message.pos));
   } else if (message.action === "resolve") {

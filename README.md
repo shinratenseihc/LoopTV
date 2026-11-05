@@ -4,7 +4,7 @@
 
 **Conçu par Shinra Tensei · Développé avec [Chat On Steroids](https://github.com/totec448-spec/chat-on-steroids)**
 
-Extension Manifest V3 affichant de **vrais GIFs animés** dans le chat Twitch et, sur la branche expérimentale, dans Cyan Chat. Sans abonnement Twitch, compte LoopTV ni clé individuelle. Aucun framework ni dépendance npm. Le nom du projet était GIFRIFT ; les anciens marqueurs `[gifrift:k:ID]` restent **lisibles**, tandis que les nouveaux envois utilisent `[ltv:k:ID]`.
+Extension Manifest V3 affichant de **vrais GIFs animés** dans le chat Twitch. Sans abonnement Twitch, compte LoopTV ni clé individuelle. Aucun framework ni dépendance npm. Le nom du projet était GIFRIFT ; les anciens marqueurs `[gifrift:k:ID]` restent **lisibles**, tandis que les nouveaux envois utilisent `[ltv:k:ID]`.
 
 **Branche de développement `feat/free-name-paints` :** Name Paints gratuits, **48 dégradés au choix + Auto**, styles néon/metal/pastel avec animations activées par défaut, galerie recherchable et aperçu. Le choix manuel d'un pseudo reste local ; aucune synchronisation de compte n'est prétendue. **[Détails et limites](NAME_PAINTS.md)**. Le téléchargement public reste **v0.7.0** tant que cette version n'est pas publiée.
 
@@ -23,11 +23,6 @@ La bêta s'installe manuellement sur Chrome, Brave et Edge. Sous Firefox, l'inst
 
 Un spectateur disposant de **LoopTV 0.8** résout les nouveaux et anciens IDs directement via KLIPY, sans recherche préalable. **Attention : LoopTV 0.7.0 ne reconnaît pas encore `[ltv:k:ID]`** et l'affichera comme du texte. Sans extension, le marqueur reste textuel. L'extension ne contourne pas les restrictions/bans Twitch et supprime l'image avec le message.
 
-## Cyan Chat / TransparentTwitchChat
-
-La branche expérimentale reconnaît aussi les messages `[ltv:k:ID]` et `[gifrift:k:ID]` sur **`https://chat.johnnycyan.com/v2/`**, dans les éléments `.message` du chat. Elle affiche au plus six GIFs simultanément, uniquement depuis le CDN KLIPY validé, sans modifier les autres messages ni envoyer des pseudos à KLIPY.
-
-**Un WebView2 n'importe pas automatiquement les extensions Chrome.** TransparentTwitchChat doit activer les extensions WebView2 et charger le paquet Chromium décompressé. Le prototype d'intégration est dans le dossier local séparé `F:\AI Projects\TTC-LoopTV-Integration`, mais ce fork n'a pas encore été compilé ni installé dans l'application de l'utilisateur. Détails : [CYAN_CHAT.md](CYAN_CHAT.md).
 
 ## Paquets bêta et publication
 
@@ -49,7 +44,7 @@ La branche expérimentale reconnaît aussi les messages `[ltv:k:ID]` et `[gifrif
 
 ## Sécurité et vie privée
 
-- Permissions Chrome limitées à `storage`, aux scripts d'affichage sur Twitch et Cyan Chat v2 et à `https://api.klipy.com/*` pour les appels API. Médias affichés uniquement depuis des URL **HTTPS `static.klipy.com` renvoyées telles quelles par KLIPY**.
+- Permissions Chrome limitées à `storage`, aux scripts d'affichage sur Twitch et à `https://api.klipy.com/*` pour les appels API. Médias affichés uniquement depuis des URL **HTTPS `static.klipy.com` renvoyées telles quelles par KLIPY**.
 - Recherches et résolutions utilisent l'API KLIPY v2, avec `media_filter=gif,tinygif` (la route `posts` rejette `nanogif`), filtre de contenu `medium`, limite de 12 résultats et pagination explicite.
 - Ni pseudo, ni historique, ni texte de chat envoyé à KLIPY : uniquement recherche, pagination ou IDs des GIFs. **KLIPY reçoit néanmoins les requêtes et peut traiter les recherches, données techniques et adresses IP** selon sa politique.
 - Aucune télémétrie, publicité, collecte ou cache persistant ajouté par LoopTV. Seules les requêtes en cours identiques sont dédupliquées.
@@ -62,7 +57,6 @@ La branche expérimentale reconnaît aussi les messages `[ltv:k:ID]` et `[gifrif
 - `node --test` : parseur KLIPY, validation des médias, API, pagination, erreurs (401/403/429, réseau), permissions et déduplication de requêtes.
 - `python test/twitch-check.py` : Chrome headless, panneau intégré, scroll, page suivante, requêtes obsolètes, choix et insertion Slate, Entrée, brouillon, suppression, six GIFs, réglages et changement de chaîne (réponses/médias simulés).
 - `python test/browser-check.py` : régression de l'ancien chat de démonstration et préférences, sans API.
-- `python test/cyan-check.py` : reconnaissance des nouveaux et anciens marqueurs, rendu GIF Cyan Chat simulé, 40 messages supplémentaires et plafond de six images (sans appel réel à l'API).
 - `python test/firefox-check.py` : installation temporaire de l'archive Firefox dans Firefox headless (sans requête KLIPY).
 - `python test/chromium-check.py` : chargement du dossier Chromium dans Brave et Edge headless, l'un après l'autre (sans requête KLIPY). Chrome officiel 137+ bloque `--load-extension` en ligne de commande : tester via `chrome://extensions`.
 
