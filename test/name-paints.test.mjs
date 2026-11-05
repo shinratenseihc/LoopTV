@@ -22,13 +22,22 @@ test("Name Paints reject invalid or excessive names and cannot generate executab
   assert.match(paints.gradientFor("a');background:url(https://invalid.example)"), /^linear-gradient\([#0-9a-z, ]+\)$/);
 });
 
-test("eight free palettes can be selected without arbitrary CSS", () => {
-  assert.equal(paints.palettes.length, 8);
+test("48 original free palettes can be selected without arbitrary CSS", () => {
+  assert.equal(paints.palettes.length, 48);
   const styles = new Set(paints.palettes.map(palette => paints.gradientFor("ShinraTensei", palette.id)));
-  assert.equal(styles.size, 8);
+  assert.equal(styles.size, 48);
+  assert.equal(new Set(paints.palettes.map(palette => palette.id)).size, 48);
+  assert.equal(new Set(paints.palettes.map(palette => palette.group)).size, 6);
   assert.equal(paints.gradientFor("SHINRATENSEI", "neon"), paints.gradientFor("shinratensei", "neon"));
   assert.equal(paints.gradientFor("ShinraTensei", "invalid'); background:url(https://example.com)"),
     paints.gradientFor("ShinraTensei"));
+  assert.equal(paints.paintFor("ShinraTensei", "plasma").effect, "glow");
+  assert.equal(paints.paintFor("ShinraTensei", "chrome").effect, "metal");
+  assert.equal(paints.paintFor("ShinraTensei", "mint").effect, "");
+  for (const palette of paints.palettes) {
+    assert.match(paints.gradientFor("ShinraTensei", palette.id),
+      /^linear-gradient\(\d+deg, #[0-9a-f]{6}, #[0-9a-f]{6}, #[0-9a-f]{6}\)$/);
+  }
 });
 
 test("Twitch native colors select the same gradient on different clients", () => {

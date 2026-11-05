@@ -81,7 +81,20 @@ try:
     assert js("getComputedStyle(document.querySelector('#paint-row .chat-author__display-name')).backgroundImage.startsWith('linear-gradient')")
     assert js("getComputedStyle(document.querySelector('#paint-row .chat-author__display-name')).webkitTextFillColor") == "rgba(0, 0, 0, 0)"
     assert js("!document.querySelector('#paint-row .text-fragment').classList.contains('looptv-name-paint')"), "Message body must not be painted"
-    assert js("!document.querySelector('#paint-row .chat-author__display-name').classList.contains('looptv-name-paint-motion')")
+    assert js("document.querySelector('#paint-row .chat-author__display-name').classList.contains('looptv-name-paint-motion')"), "Name paints must animate by default"
+    assert js("getComputedStyle(document.querySelector('#paint-row .chat-author__display-name')).animationName") == "looptv-name-flow"
+    assert browser.execute_script("""
+      const node = document.querySelector('#paint-row .chat-author__display-name');
+      const animation = node.getAnimations().find(item => item.animationName === 'looptv-name-flow');
+      if (!animation) return false;
+      animation.pause();
+      animation.currentTime = 100;
+      const a = getComputedStyle(node).backgroundPosition;
+      animation.currentTime = 2300;
+      const b = getComputedStyle(node).backgroundPosition;
+      animation.play();
+      return a !== b;
+    """), "Animated paint must change actual background position, not just set a class"
     assert js("document.querySelector('#paint-row .chat-author__display-name').style.color") == 'rgb(255, 0, 0)', "Must preserve Twitch's native name color"
     assert js("document.querySelector('#paint-row .chat-author__display-name').style.getPropertyValue('--looptv-name-gradient')") == js("LoopTVNamePaints.gradientFor('ShinraTensei','auto','rgb(255, 0, 0)')"), "Twitch's native color must determine the shared automatic gradient"
     other_before = js("document.querySelector('#paint-row-alt [data-a-target=chat-message-username]').style.getPropertyValue('--looptv-name-gradient')")
@@ -89,6 +102,9 @@ try:
     time.sleep(.1)
     assert js("document.querySelector('#paint-row .chat-author__display-name').style.getPropertyValue('--looptv-name-gradient')") == js("LoopTVNamePaints.gradientFor('ShinraTensei','lagoon')"), "Chosen palette applies to the selected name"
     assert js("document.querySelector('#paint-row-alt [data-a-target=chat-message-username]').style.getPropertyValue('--looptv-name-gradient')") == other_before, "Other names keep their existing paints"
+    browser.execute_script("window.notifyStorage({namePaintPalette:{newValue:'plasma'}},'local')")
+    time.sleep(.1)
+    assert js("document.querySelector('#paint-row .chat-author__display-name').classList.contains('looptv-name-paint-glow')"), "Selected neon paint should glow"
     browser.execute_script("window.notifyStorage({namePaintPalette:{newValue:'auto'}},'local')")
     time.sleep(.1)
     assert js("document.querySelector('#paint-row .chat-author__display-name').style.getPropertyValue('--looptv-name-gradient')") == js("LoopTVNamePaints.gradientFor('ShinraTensei','auto','rgb(255, 0, 0)')"), "Auto restores shared Twitch-derived palette"
@@ -96,6 +112,9 @@ try:
     time.sleep(.1)
     assert js("document.querySelector('#paint-row .chat-author__display-name').style.getPropertyValue('--looptv-name-gradient')") == js("LoopTVNamePaints.gradientFor('ShinraTensei','auto','rgb(0, 0, 255)')"), "Twitch color updates the gradient without another service"
     browser.execute_script("document.querySelector('#paint-row .chat-author__display-name').style.color='rgb(255, 0, 0)'; document.body.append(document.createElement('hr'))")
+    browser.execute_script("window.notifyStorage({namePaintsAnimated:{newValue:false}},'local')")
+    time.sleep(.1)
+    assert js("!document.querySelector('#paint-row .chat-author__display-name').classList.contains('looptv-name-paint-motion')"), "Motion toggle must stop gradients"
     browser.execute_script("window.notifyStorage({namePaintsAnimated:{newValue:true}},'local')")
     time.sleep(.1)
     assert js("document.querySelector('#paint-row .chat-author__display-name').classList.contains('looptv-name-paint-motion')")
@@ -222,7 +241,11 @@ try:
     assert count() == 1, "GIFs must animate by default even when Windows reduces motion"
     browser.execute_script("window.notifyStorage({namePaintsAnimated:{newValue:true}},'local')")
     time.sleep(.1)
-    assert js("!document.querySelector('#fixture-chat .chat-author__display-name').classList.contains('looptv-name-paint-motion')"), "Name animation must honor reduced motion"
+    assert js("document.querySelector('#fixture-chat .chat-author__display-name').classList.contains('looptv-name-paint-motion')"), "Explicit Name Paint animation setting overrides Windows reduced motion"
+    assert js("getComputedStyle(document.querySelector('#fixture-chat .chat-author__display-name')).animationName") == "looptv-name-flow"
+    browser.execute_script("window.notifyStorage({namePaintsAnimated:{newValue:false}},'local')")
+    time.sleep(.1)
+    assert js("getComputedStyle(document.querySelector('#fixture-chat .chat-author__display-name')).animationName") == "none", "User's motion opt-out always works"
     browser.execute_script("window.notifyStorage({allowMotion:{newValue:false}},'local')")
     time.sleep(.2)
     assert count() == 0, "Explicit user motion opt-out must still work"

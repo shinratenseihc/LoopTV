@@ -6,7 +6,7 @@
 
 Extension Manifest V3 affichant de **vrais GIFs animés** dans le chat Twitch, sans abonnement Twitch, compte LoopTV ni clé individuelle. Aucun framework ni dépendance npm. Le nom du projet était GIFRIFT ; les marqueurs historiques `[gifrift:k:ID]` restent inchangés pour la compatibilité.
 
-**Branche de développement `feat/free-name-paints` :** Name Paints gratuits, **8 dégradés au choix + Auto**, couleurs basées sur la couleur Twitch quand elle est disponible, animation facultative et aperçu. Le choix manuel d'un pseudo reste local ; aucune synchronisation de compte n'est prétendue. **[Détails et limites](NAME_PAINTS.md)**. Le téléchargement public reste **v0.7.0** tant que cette version n'est pas publiée.
+**Branche de développement `feat/free-name-paints` :** Name Paints gratuits, **48 dégradés au choix + Auto**, styles néon/metal/pastel avec animations activées par défaut, galerie recherchable et aperçu. Le choix manuel d'un pseudo reste local ; aucune synchronisation de compte n'est prétendue. **[Détails et limites](NAME_PAINTS.md)**. Le téléchargement public reste **v0.7.0** tant que cette version n'est pas publiée.
 
 ## 📦 Télécharger LoopTV
 

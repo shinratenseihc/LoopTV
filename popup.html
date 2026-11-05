@@ -23,11 +23,13 @@
   <div class="paint-settings" aria-label="Name Paints gratuits">
     <strong>Name Paints <small>GRATUIT</small></strong>
     <label class="toggle"><input type="checkbox" id="name-paints" checked> Pseudos en dégradé dans le chat</label>
-    <label class="toggle"><input type="checkbox" id="name-paints-animated"> Animer les dégradés</label>
+    <label class="toggle"><input type="checkbox" id="name-paints-animated" checked> Dégradés animés (même avec Windows)</label>
     <div class="paint-preview" aria-live="polite"><span id="paint-preview-name">LoopTV</span><span> : GG 🔥</span></div>
     <label class="paint-label" for="paint-preview-input">Ton pseudo Twitch</label>
     <input id="paint-preview-input" type="text" maxlength="40" placeholder="Ex. ShinraTensei" autocomplete="off" spellcheck="false">
     <div class="paint-label" id="paint-palette-label">Choisis ton dégradé</div>
+    <input id="paint-search" type="search" placeholder="Chercher : néon, pastel, bleu…" aria-label="Rechercher un Name Paint">
+    <div class="paint-count" id="paint-count" aria-live="polite"></div>
     <div id="paint-palette-list" class="paint-palette-list" role="group" aria-labelledby="paint-palette-label"></div>
     <p class="note" id="paint-choice-note">Ton choix est local.</p>
     <p class="note">Pour être vu des autres, choisis ta couleur Twitch et laisse le mode Auto.</p>

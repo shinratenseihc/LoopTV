@@ -153,16 +153,17 @@ Services externes minimaux
 
 - [x] Dégradés de pseudo calculés localement et identiquement sur tous les navigateurs, sans compte ni API supplémentaire.
 - [x] Préférences d'activation et d'animation indépendantes des GIFs, et prévisualisation dans la popup.
-- [x] Huit palettes originales sélectionnables (plus Auto) pour un pseudo ciblé localement ; sauvegarde locale du pseudo et de son choix.
+- [x] 48 palettes originales sélectionnables (plus Auto), six familles, halos néon, effets métalliques, galerie searchable pour un pseudo ciblé localement ; sauvegarde locale du pseudo et de son choix.
 - [x] Association automatique d'une palette à la couleur native du pseudo Twitch lorsqu'elle est présente : une couleur Twitch différente peut entraîner un dégradé différent chez tous les utilisateurs équipés, sans backend.
 - [x] Restauration de la couleur Twitch native à la désactivation, respect des animations réduites.
 - [x] Tests unitaires et tests Selenium de simulation Twitch/popup, avec régressions GIF, et chargement des paquets sur Brave, Edge et Firefox.
 - [x] Inspection en lecture seule du chat Twitch réel : un unique pseudo à peindre par message, sans doubler le conteneur parent et la feuille ; couleur calculée en fallback.
 - [x] Interface popup compacte par onglets **GIFs / Couleurs**, navigation clavier, restauration du dernier onglet et du dégradé sélectionné.
+- [x] Animations réelles du dégradé, activées par défaut même lorsque Windows réduit le mouvement, avec désactivation explicite indépendante des GIFs.
 - [ ] Validation d'affichage dans différents chats Twitch réels et coexistence avec les styles 7TV/BTTV.
 - [ ] Choix personnel LoopTV synchronisé entre utilisateurs indépendamment de la couleur Twitch : nécessite un mécanisme de synchronisation et une identité fiable.
 
-Les 8 palettes sont **originales** : ni textures premium 7TV/BTTV, ni déblocage de cosmétiques payants, ni API de suivi des utilisateurs. Détails dans [NAME_PAINTS.md](NAME_PAINTS.md).
+Les 48 palettes sont **originales** : ni textures premium 7TV/BTTV, ni déblocage de cosmétiques payants, ni API de suivi des utilisateurs. Détails dans [NAME_PAINTS.md](NAME_PAINTS.md).
 
 ## 8. Critères d'acceptation
 

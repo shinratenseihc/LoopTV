@@ -14,7 +14,7 @@
   let enabled = true;
   let allowMotion = true;
   let namePaintsEnabled = true;
-  let namePaintsAnimated = false;
+  let namePaintsAnimated = true;
   let namePaintTarget = "";
   let namePaintPalette = "auto";
   let queued = false;
@@ -291,7 +291,6 @@
     globalThis.LoopTVNamePaints.sync(document, {
       enabled: namePaintsEnabled,
       animated: namePaintsAnimated,
-      reducedMotion: motion.matches,
       targetName: namePaintTarget,
       paletteId: namePaintPalette
     });
@@ -362,12 +361,12 @@
     requestAnimationFrame(update);
   }
   motion.addEventListener("change", schedule);
-  chrome.storage.local.get({ enabled: true, allowMotion: true, namePaintsEnabled: true, namePaintsAnimated: false,
+  chrome.storage.local.get({ enabled: true, allowMotion: true, namePaintsEnabled: true, namePaintsAnimated: true,
     namePaintTarget: "", namePaintPalette: "auto" }, settings => {
     enabled = settings.enabled !== false;
     allowMotion = settings.allowMotion !== false;
     namePaintsEnabled = settings.namePaintsEnabled !== false;
-    namePaintsAnimated = settings.namePaintsAnimated === true;
+    namePaintsAnimated = settings.namePaintsAnimated !== false;
     namePaintTarget = typeof settings.namePaintTarget === "string" ? settings.namePaintTarget : "";
     namePaintPalette = typeof settings.namePaintPalette === "string" ? settings.namePaintPalette : "auto";
     schedule();
@@ -377,7 +376,7 @@
     if (changes.enabled) enabled = changes.enabled.newValue !== false;
     if (changes.allowMotion) allowMotion = changes.allowMotion.newValue !== false;
     if (changes.namePaintsEnabled) namePaintsEnabled = changes.namePaintsEnabled.newValue !== false;
-    if (changes.namePaintsAnimated) namePaintsAnimated = changes.namePaintsAnimated.newValue === true;
+    if (changes.namePaintsAnimated) namePaintsAnimated = changes.namePaintsAnimated.newValue !== false;
     if (changes.namePaintTarget) namePaintTarget = typeof changes.namePaintTarget.newValue === "string" ? changes.namePaintTarget.newValue : "";
     if (changes.namePaintPalette) namePaintPalette = typeof changes.namePaintPalette.newValue === "string" ? changes.namePaintPalette.newValue : "auto";
     schedule();
