@@ -72,10 +72,10 @@ function updatePreview() {
       : "Entre ton pseudo pour appliquer ce choix dans ton chat.";
 }
 
-chrome.storage.local.get({ enabled: true, allowMotion: false, namePaintsEnabled: true,
+chrome.storage.local.get({ enabled: true, allowMotion: true, namePaintsEnabled: true,
   namePaintsAnimated: false, namePaintTarget: "", namePaintPalette: "auto", popupTab: "gifs" }, settings => {
   enabled.checked = settings.enabled !== false;
-  allowMotion.checked = settings.allowMotion === true;
+  allowMotion.checked = settings.allowMotion !== false;
   namePaintsEnabled.checked = settings.namePaintsEnabled !== false;
   namePaintsAnimated.checked = settings.namePaintsAnimated === true;
   previewInput.value = typeof settings.namePaintTarget === "string" ? settings.namePaintTarget : "";

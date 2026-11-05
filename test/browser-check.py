@@ -66,6 +66,9 @@ try:
       }}};
     """})
     browser.get(f"http://127.0.0.1:{server.server_port}/popup.html")
+    assert browser.find_element("id", "allow-motion").is_selected(), "GIF motion should be enabled by default"
+    browser.find_element("id", "allow-motion").click()
+    assert browser.execute_script("return window.savedSettings.allowMotion") is False, "User must be able to disable forced GIF motion"
     browser.find_element("id", "enabled").click()
     saved = browser.execute_script("return window.savedSettings.enabled")
     assert saved is False, "Settings were not saved"
@@ -91,6 +94,7 @@ try:
     browser.refresh()
     assert browser.execute_script("return document.querySelector('#tab-paints').getAttribute('aria-selected')") == "true", "Current tab must persist across popup reopening"
     assert browser.execute_script("return document.querySelector('#paint-preview-input').value") == "ShinraTensei", "Target username must persist"
+    assert not browser.find_element("id", "allow-motion").is_selected(), "Explicitly disabled motion must persist"
     assert browser.execute_script("return document.querySelector('[data-palette-id=lagoon]').getAttribute('aria-pressed')") == "true", "Chosen palette must persist"
     assert browser.execute_script("return document.documentElement.scrollWidth <= window.innerWidth"), "Popup must fit horizontally"
     print(json.dumps({"initial": start, "disabled": off, "stress": loaded, "cleared": cleared, "reduced": reduced}, ensure_ascii=False))

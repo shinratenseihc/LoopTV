@@ -47,7 +47,7 @@ Un spectateur disposant de **la même version configurée** de LoopTV résout l'
 - Recherches et résolutions utilisent l'API KLIPY v2, avec `media_filter=gif,tinygif` (la route `posts` rejette `nanogif`), filtre de contenu `medium`, limite de 12 résultats et pagination explicite.
 - Ni pseudo, ni historique, ni texte de chat envoyé à KLIPY : uniquement recherche, pagination ou IDs des GIFs. **KLIPY reçoit néanmoins les requêtes et peut traiter les recherches, données techniques et adresses IP** selon sa politique.
 - Aucune télémétrie, publicité, collecte ou cache persistant ajouté par LoopTV. Seules les requêtes en cours identiques sont dédupliquées.
-- Six animations simultanées au maximum ; médias paresseusement chargés, taille/dimensions contrôlées, réduction du mouvement respectée par défaut et désactivation locale possible.
+- Six animations simultanées au maximum ; médias paresseusement chargés, taille/dimensions contrôlées. Les **GIFs sont animés par défaut**, même si Windows active la réduction du mouvement ; l'utilisateur peut désactiver cette dérogation dans l'onglet GIFs. Les **Name Paints animés** continuent à respecter la réduction du mouvement.
 - Le marqueur KLIPY `[gifrift:k:ID]` accepte uniquement un ID décimal. Les anciens marqueurs GIPHY `[gifrift:g:ID]` **restent du texte** ; aucune conversion arbitraire.
 - Attribution `Powered by KLIPY` visible dans le panneau et sous les GIFs, source/auteur lorsqu'ils sont fournis. La modération synchronisée par chaîne reste hors du périmètre de cette version ; ne pas annoncer une distribution publique définitive.
 

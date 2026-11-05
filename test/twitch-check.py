@@ -49,7 +49,7 @@ try:
           }
         },
         storage: {
-          local: {get: (_, callback) => callback({enabled:true,allowMotion:false})},
+          local: {get: (defaults, callback) => callback({...defaults,enabled:true})},
           onChanged: {addListener:listener => window.notifyStorage=listener}
         }
       };
@@ -219,16 +219,16 @@ try:
         "features": [{"name": "prefers-reduced-motion", "value": "reduce"}]
     })
     time.sleep(.2)
-    assert count() == 0
+    assert count() == 1, "GIFs must animate by default even when Windows reduces motion"
     browser.execute_script("window.notifyStorage({namePaintsAnimated:{newValue:true}},'local')")
     time.sleep(.1)
     assert js("!document.querySelector('#fixture-chat .chat-author__display-name').classList.contains('looptv-name-paint-motion')"), "Name animation must honor reduced motion"
-    browser.execute_script("window.notifyStorage({allowMotion:{newValue:true}},'local')")
-    time.sleep(.2)
-    assert count() == 1
     browser.execute_script("window.notifyStorage({allowMotion:{newValue:false}},'local')")
     time.sleep(.2)
-    assert count() == 0
+    assert count() == 0, "Explicit user motion opt-out must still work"
+    browser.execute_script("window.notifyStorage({allowMotion:{newValue:true}},'local')")
+    time.sleep(.2)
+    assert count() == 1, "Re-enabling GIF motion must restore animations"
     browser.execute_script("history.replaceState({},'', '/anotherchannel'); document.body.append(document.createElement('hr'));")
     time.sleep(.2)
     assert js("document.querySelector('.gifrift-picker').hidden") is True

@@ -12,7 +12,7 @@
   const failed = new Set();
   const pendingInputs = new WeakSet();
   let enabled = true;
-  let allowMotion = false;
+  let allowMotion = true;
   let namePaintsEnabled = true;
   let namePaintsAnimated = false;
   let namePaintTarget = "";
@@ -362,10 +362,10 @@
     requestAnimationFrame(update);
   }
   motion.addEventListener("change", schedule);
-  chrome.storage.local.get({ enabled: true, allowMotion: false, namePaintsEnabled: true, namePaintsAnimated: false,
+  chrome.storage.local.get({ enabled: true, allowMotion: true, namePaintsEnabled: true, namePaintsAnimated: false,
     namePaintTarget: "", namePaintPalette: "auto" }, settings => {
     enabled = settings.enabled !== false;
-    allowMotion = settings.allowMotion === true;
+    allowMotion = settings.allowMotion !== false;
     namePaintsEnabled = settings.namePaintsEnabled !== false;
     namePaintsAnimated = settings.namePaintsAnimated === true;
     namePaintTarget = typeof settings.namePaintTarget === "string" ? settings.namePaintTarget : "";
@@ -375,7 +375,7 @@
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== "local") return;
     if (changes.enabled) enabled = changes.enabled.newValue !== false;
-    if (changes.allowMotion) allowMotion = changes.allowMotion.newValue === true;
+    if (changes.allowMotion) allowMotion = changes.allowMotion.newValue !== false;
     if (changes.namePaintsEnabled) namePaintsEnabled = changes.namePaintsEnabled.newValue !== false;
     if (changes.namePaintsAnimated) namePaintsAnimated = changes.namePaintsAnimated.newValue === true;
     if (changes.namePaintTarget) namePaintTarget = typeof changes.namePaintTarget.newValue === "string" ? changes.namePaintTarget.newValue : "";
