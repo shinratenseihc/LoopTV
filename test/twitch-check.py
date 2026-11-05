@@ -1,4 +1,4 @@
-"""Test local du script Twitch sur un DOM simulé, sans messages réels."""
+"""Offline Chrome check of GIFRIFT's active Twitch content script + controlled Slate editor."""
 import json
 import threading
 import time
@@ -14,130 +14,174 @@ server = ThreadingHTTPServer(("127.0.0.1", 0), partial(SimpleHTTPRequestHandler,
 threading.Thread(target=server.serve_forever, daemon=True).start()
 opts = Options()
 opts.add_argument("--headless=new")
+opts.add_argument("--window-size=1200,1100")
 browser = webdriver.Chrome(options=opts)
+id = "1234567890123456"
 try:
     browser.execute_cdp_cmd("Emulation.setEmulatedMedia", {
         "features": [{"name": "prefers-reduced-motion", "value": "no-preference"}]
     })
     browser.get(f"http://127.0.0.1:{server.server_port}/test/twitch-fixture.html")
     browser.execute_script("""
+      window.apiRequests = [];
+      const entry = (id, title = 'KLIPY GIF') => ({
+        id: String(id), title, preview:'/assets/demo.gif',
+        media:'/assets/demo.gif', width:220, height:110, source:'Creator'
+      });
       window.chrome = {
         runtime: {
           getURL: name => '/'+name,
           sendMessage: (message, callback) => {
-            window.openedPicker = message;
-            callback({ok: true});
-          },
-          onMessage: {addListener: listener => window.twitchMessageHandler = listener}
+            window.apiRequests.push(message);
+            if (message.action === 'resolve') {
+              callback({gifs:message.ids.map(id => entry(id))});
+              return;
+            }
+            if (message.action !== 'browse') return callback({error:'invalid-action'});
+            if (message.query === 'slow') {
+              setTimeout(() => callback({gifs:[entry('3333333333333333','SLOW RESULT')],next:''}), 700);
+              return;
+            }
+            if (message.query === 'fast') return callback({gifs:[entry('4444444444444444','FAST RESULT')],next:''});
+            if (message.query === 'cat') return callback({gifs:[entry('2222222222222222','CAT RESULT')],next:''});
+            if (message.pos === '12') return callback({gifs:Array.from({length:6}, (_,i) => entry('9876543210'+String(i).padStart(6,'0'))),next:''});
+            callback({gifs:Array.from({length:12}, (_,i) => entry('1234567890'+String(i).padStart(6,'0'))),next:'12'});
+          }
         },
         storage: {
-          local: {get: (_, callback) => callback({enabled: true})},
-          onChanged: {addListener: listener => window.notifyStorage = listener}
+          local: {get: (_, callback) => callback({enabled:true,allowMotion:false})},
+          onChanged: {addListener:listener => window.notifyStorage=listener}
         }
       };
-    """)
-    browser.execute_script("""
-      const el = document.createElement('script');
-      el.src = '/twitch.js';
-      document.body.append(el);
+      const script=document.createElement('script');
+      script.src='/twitch.js';
+      document.body.append(script);
     """)
     time.sleep(.3)
-    def count():
-        return browser.execute_script("return document.querySelectorAll('.gifrift-media').length")
-    assert count() == 1, ("first marker", count())
-    assert browser.execute_script("return document.querySelector('#fixture-chat .text-fragment').hidden") is True, "marker stays visible"
-    assert browser.execute_script("return document.querySelectorAll('.gifrift-button').length") == 1
-    assert browser.execute_script("return document.querySelector('[data-test-selector=chat-input-buttons-container] > .gifrift-button') !== null")
-    assert browser.execute_script("return document.querySelector('[data-a-target=chat-input] .gifrift-button') === null")
+    js = lambda statement: browser.execute_script("return " + statement)
+    count = lambda: js("document.querySelectorAll('.gifrift-media').length")
+    assert count() == 1, "Original demo should still render"
+    assert js("document.querySelector('#fixture-chat .text-fragment').hidden") is True
+    assert js("document.querySelectorAll('.gifrift-button').length") == 1
+    assert js("document.querySelector('.gifrift-button').nextElementSibling.contains(document.querySelector('[data-a-target=chat-send-button]'))"), "GIF must be the left sibling of Chat inside its own group"
+    assert js("document.querySelector('.gifrift-button').parentElement.classList.contains('gifrift-send-group')"), "GIF and Chat must form one wrapping group"
+    assert js("Math.abs(document.querySelector('.gifrift-button').getBoundingClientRect().top - document.querySelector('[data-a-target=chat-send-button]').getBoundingClientRect().top) < 1"), "GIF must be on the SAME ROW as Chat"
+    assert js("document.querySelector('.gifrift-button').getBoundingClientRect().right < document.querySelector('[data-a-target=chat-send-button]').getBoundingClientRect().left"), "GIF must be LEFT of Chat"
+    assert js("document.querySelector('.gifrift-button').getBoundingClientRect().top < document.querySelector('.shield-mode-shortcut__btn').getBoundingClientRect().top"), "GIF+Chat should be above moderation in wrap-reverse Twitch"
+    assert js("getComputedStyle(document.querySelector('.gifrift-button')).height") == "32px"
+    assert js("getComputedStyle(document.querySelector('.gifrift-button')).borderRadius") == "9000px"
+    assert js("getComputedStyle(document.querySelector('.gifrift-button')).backgroundColor") == "rgb(145, 71, 255)"
+
     browser.find_element("css selector", ".gifrift-button").click()
+    time.sleep(.2)
+    assert js("document.querySelector('.gifrift-picker').hidden") is False
+    assert js("document.querySelector('.gifrift-search').placeholder") == "Search KLIPY"
+    assert js("document.querySelector('.gifrift-attribution').textContent") == "Powered by KLIPY"
+    assert abs(js("document.querySelector('.gifrift-picker').getBoundingClientRect().width - document.querySelector('.chat-input').getBoundingClientRect().width")) < 2
+    assert js("getComputedStyle(document.querySelector('.gifrift-picker-grid')).overflowY") == "auto"
+    assert js("document.querySelectorAll('.gifrift-choice').length") == 12
+
+    assert js("document.querySelector('.gifrift-picker-grid').scrollHeight > document.querySelector('.gifrift-picker-grid').clientHeight"), "Result grid must be scrollable"
+    browser.execute_script("document.querySelector('.gifrift-picker-grid').scrollTop = 200")
+    assert js("document.querySelector('.gifrift-picker-grid').scrollTop") > 0
+    browser.find_element("css selector", ".gifrift-more").click()
     time.sleep(.1)
-    assert browser.execute_script("return window.openedPicker?.type === 'open-giphy'"), "GIPHY window not requested"
-    browser.execute_script("""
-      window.twitchMessageHandler(
-        {type:'gifrift-insert', id:'cZ7rmKfFYOvYI'},
-        {},
-        response => window.insertResponse = response
-      );
-    """)
-    time.sleep(.1)
-    assert browser.execute_script("return document.querySelector('[data-a-target=chat-input]').textContent.includes('[gifrift:g:cZ7rmKfFYOvYI]')")
-    assert browser.execute_script("return window.fixtureState.text") == "[gifrift:g:cZ7rmKfFYOvYI]", "Slate model not updated"
-    assert browser.execute_script("return window.insertResponse?.ok === true")
-    browser.find_element("css selector", '[data-a-target="chat-input"]').send_keys(Keys.ENTER)
-    assert browser.execute_script("return window.fixtureState.submitted") == ["[gifrift:g:cZ7rmKfFYOvYI]"], "Enter did not submit"
+    assert js("document.querySelectorAll('.gifrift-choice').length") == 18, "Pagination should append only on demand"
+    assert js("window.apiRequests.filter(x=>x.action==='browse' && x.pos==='12').length") == 1
+
+    search = browser.find_element("css selector", ".gifrift-search")
+    search.send_keys("slow")
+    time.sleep(.5)
+    search.send_keys(Keys.CONTROL, "a")
+    search.send_keys("fast")
     time.sleep(.55)
+    assert js("document.querySelector('.gifrift-choice img')?.alt") == "FAST RESULT", "Stale responses must not replace new search"
+    time.sleep(.3)
+    assert js("document.querySelector('.gifrift-choice img')?.alt") == "FAST RESULT"
+    search.send_keys(Keys.CONTROL, "a")
+    search.send_keys("cat")
+    time.sleep(.55)
+    assert js("document.querySelector('.gifrift-choice img')?.alt") == "CAT RESULT"
+
+    # An existing draft must stay untouched.
     browser.execute_script("""
-      window.twitchMessageHandler(
-        {type:'gifrift-insert', id:'cZ7rmKfFYOvYI'},
-        {},
-        response => window.insertResponse = response
-      );
+      window.fixtureState.text='already written';
+      document.querySelector('[data-slate-leaf]').textContent='already written';
     """)
-    assert browser.execute_script("return window.fixtureState.text") == "[gifrift:g:cZ7rmKfFYOvYI]", "Cannot insert again after Enter"
+    browser.find_element("css selector", ".gifrift-choice").click()
+    assert js("window.fixtureState.text") == "already written"
+    assert js("document.querySelector('.gifrift-picker').hidden") is False
     browser.execute_script("""
-      window.chrome.runtime.sendMessage = (_, callback) => callback({error:'window'});
+      window.fixtureState.text='';
+      document.querySelector('[data-slate-leaf]').textContent='\uFEFF';
     """)
-    browser.find_element("css selector", ".gifrift-button").click()
-    assert browser.execute_script("return document.querySelector('.gifrift-picker')?.hidden === false"), "Manual link fallback did not open"
-    field = browser.find_element("css selector", ".gifrift-picker input")
-    field.send_keys("https://example.org/bad.gif")
-    assert browser.find_element("css selector", ".gifrift-insert").get_attribute("disabled") is not None
-    field.clear()
-    field.send_keys("https://giphy.com/gifs/funny-hello-cZ7rmKfFYOvYI")
-    assert browser.find_element("css selector", ".gifrift-insert").get_attribute("disabled") is None
+    browser.find_element("css selector", ".gifrift-choice").click()
+    time.sleep(.1)
+    marker = "[gifrift:k:2222222222222222]"
+    assert js("window.fixtureState.text") == marker, "Slate model was not updated"
+    assert js("document.querySelector('.gifrift-picker').hidden") is True
+    browser.find_element("css selector", '[data-a-target="chat-input"]').send_keys(Keys.ENTER)
+    assert js("window.fixtureState.submitted") == [marker], "Enter did not send marker"
+
     browser.execute_script("""
       const frag = document.createDocumentFragment();
-      for(let n=0;n<100;n++) {
+      for (let n=0;n<100;n++) {
         const row=document.createElement('div');
         row.className='chat-line__message';
-        const msg=document.createElement('span');
-        msg.className='text-fragment';
-        msg.textContent = n%2 ? 'message courant' : '[gifrift:demo]';
-        row.append(msg);
-        frag.append(row);
+        const text=document.createElement('span');
+        text.className='text-fragment';
+        text.textContent=n%2 ? 'message normal' : '[gifrift:k:1234567890123456]';
+        row.append(text);frag.append(row);
       }
       document.querySelector('#fixture-chat').append(frag);
     """)
     time.sleep(.3)
-    assert count() == 6, ("limit", count())
-    browser.execute_script("""
-      document.querySelector('#fixture-chat').replaceChildren();
-    """)
+    assert count() == 6, ("max six GIFs", count())
+    before = js("window.apiRequests.filter(x=>x.action==='resolve').length")
+    browser.execute_script("document.querySelector('#fixture-chat').append(document.createElement('p'))")
     time.sleep(.2)
-    assert count() == 0, ("deleted messages", count())
+    after = js("window.apiRequests.filter(x=>x.action==='resolve').length")
+    assert before == after, "MutationObserver is repeating already resolved requests"
+
+    browser.execute_script("document.querySelector('#fixture-chat').replaceChildren()")
+    time.sleep(.2)
+    assert count() == 0, "Deleting messages must delete images"
     browser.execute_script("""
       const row=document.createElement('div');
       row.className='chat-line__message';
-      const fragment=document.createElement('span');
-      fragment.className='text-fragment';
-      fragment.textContent='[gifrift:g:cZ7rmKfFYOvYI]';
-      row.append(fragment);
+      const text=document.createElement('span');
+      text.className='text-fragment';
+      text.textContent='[gifrift:k:1234567890123456]';
+      row.append(text);
       document.querySelector('#fixture-chat').append(row);
     """)
     time.sleep(.2)
     assert count() == 1
-    assert browser.execute_script("return document.querySelector('#fixture-chat .text-fragment').hidden") is True
-    browser.execute_script("window.notifyStorage({enabled:{newValue:false}}, 'local')")
+    assert js("document.querySelector('#fixture-chat .text-fragment').hidden") is True
+    browser.execute_script("window.notifyStorage({enabled:{newValue:false}},'local')")
     time.sleep(.2)
-    assert count() == 0, ("disable", count())
-    assert browser.execute_script("return document.querySelector('#fixture-chat .text-fragment').hidden") is False, "marker not restored"
-    browser.execute_script("window.notifyStorage({enabled:{newValue:true}}, 'local')")
+    assert count() == 0
+    assert js("document.querySelector('#fixture-chat .text-fragment').hidden") is False
+    browser.execute_script("window.notifyStorage({enabled:{newValue:true}},'local')")
     time.sleep(.2)
-    assert count() == 1, ("enable", count())
-    assert browser.execute_script("return document.querySelector('#fixture-chat .text-fragment').hidden") is True
+    assert count() == 1
     browser.execute_cdp_cmd("Emulation.setEmulatedMedia", {
         "features": [{"name": "prefers-reduced-motion", "value": "reduce"}]
     })
     time.sleep(.2)
-    assert count() == 0, ("reduced motion", count())
-    assert browser.execute_script("return document.querySelector('#fixture-chat .text-fragment').hidden") is False
-    browser.execute_script("window.notifyStorage({allowMotion:{newValue:true}}, 'local')")
+    assert count() == 0
+    browser.execute_script("window.notifyStorage({allowMotion:{newValue:true}},'local')")
     time.sleep(.2)
-    assert count() == 1, ("explicit motion override", count())
-    browser.execute_script("window.notifyStorage({allowMotion:{newValue:false}}, 'local')")
+    assert count() == 1
+    browser.execute_script("window.notifyStorage({allowMotion:{newValue:false}},'local')")
     time.sleep(.2)
-    assert count() == 0, ("restore system preference", count())
-    print(json.dumps({"simulated_messages":100,"max_gifs":6,"deletion":True,"toggle":True,"reduced_motion":True,"motion_override":True}))
+    assert count() == 0
+    browser.execute_script("history.replaceState({},'', '/anotherchannel'); document.body.append(document.createElement('hr'));")
+    time.sleep(.2)
+    assert js("document.querySelector('.gifrift-picker').hidden") is True
+    print(json.dumps({"picker":"integrated", "page_count":18, "slate":"enter works", "max_gifs":6,
+        "deletion":True, "motion":True, "channel_change":True, "stale_search":True,
+        "draft_preserved":True}, ensure_ascii=False))
 finally:
     browser.quit()
     server.shutdown()

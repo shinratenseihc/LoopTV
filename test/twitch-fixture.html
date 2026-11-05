@@ -1,11 +1,16 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><title>Twitch fixture</title></head>
+<html><head><meta charset="utf-8"><title>Twitch fixture</title>
+<link rel="stylesheet" href="../twitch.css">
+<style>.chat-input { width:360px; position:relative; margin:650px 0 450px; } .chat-input__buttons-container { display:flex; width:324px; flex-wrap:wrap-reverse; align-items:center; margin-top:8px; } .points-controls { flex:0 0 114px; height:32px; } .moderation-controls { flex:0 0 110px; height:32px; } .send-container { margin-left:4px; } [data-a-target=chat-send-button] { height:32px; border:0; border-radius:9000px; background:#9147ff; color:#fff; padding:0 12px; } .chat-line__message { margin:6px 0; }</style>
+</head>
 <body>
 <div class="chat-input">
   <div class="chat-wysiwyg-input-box">
     <div data-a-target="chat-input" data-slate-editor="true" class="chat-wysiwyg-input__editor" contenteditable="true" role="textbox"><div data-slate-node="element"><span data-slate-node="text"><span data-slate-leaf="true"><span data-slate-zero-width="n">&#65279;<br></span></span></span></div></div>
   </div>
   <div class="chat-input__buttons-container" data-test-selector="chat-input-buttons-container">
+    <div class="points-controls">Points</div>
+    <div class="moderation-controls"><button type="button" class="shield-mode-shortcut__btn" aria-label="Mode bouclier">Shield</button></div>
     <div class="send-container"><button type="button" data-a-target="chat-send-button">Chat</button></div>
   </div>
 </div>
@@ -18,15 +23,6 @@
   const editor = document.querySelector('[data-a-target="chat-input"]');
   const state = {text: "", submitted: []};
   window.fixtureState = state;
-  // Simulate a public GIPHY image without any external request during the test.
-  const imageSrc = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, "src");
-  Object.defineProperty(HTMLImageElement.prototype, "src", {
-    get() { return imageSrc.get.call(this); },
-    set(value) {
-      imageSrc.set.call(this, value.startsWith("https://media.giphy.com/media/")
-        ? "/assets/demo.gif" : value);
-    }
-  });
   editor.addEventListener("beforeinput", event => {
     if (event.inputType !== "insertText") return;
     const selected = document.getSelection()?.anchorNode;

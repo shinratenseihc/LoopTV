@@ -1,6 +1,6 @@
 # GIFRIFT | Cahier des charges et feuille de route
 
-**Statut :** GIFRIFT v0.6.0 (2026-11-05). Recherche visuelle via une fenêtre GIPHY compacte ouverte depuis Twitch ; un clic sur un GIF prépare son marqueur dans le bon onglet Twitch. Aucune clé API ou licence de recherche nécessaire. L'iframe est bloquée par GIPHY (`X-Frame-Options: DENY`), d'où la fenêtre distincte. Tests Node/Chrome sur pages simulées réussis ; validation manuelle du clic sur la vraie page GIPHY restante. 7TV rejeté (emotes), GitHub non retenu pour l'hébergement illimité.
+**Statut :** GIFRIFT v0.7.0 (2026-11-05). Panneau de recherche GIF KLIPY intégré au chat Twitch, pagination manuelle, marqueur `[gifrift:k:ID]` via Slate et résolution chez les spectateurs avec la même extension configurée. Tests KLIPY v2 réels (recherche, tendances, pagination, résolution) réussis avec clé DPAPI locale ; tests Chrome headless du panneau et rendu en simulation réussis. Rechargement/validation manuelle dans Twitch réel restant à effectuer. Pas de reset Git ni push.
 **Date :** 2026-11-04
 **Emplacement :** `F:\AI Projects\GIFRIFT`
 **Cible :** extension de navigateur pour le chat Twitch, gratuite et open source.
@@ -43,7 +43,7 @@ Afficher dans le chat Twitch de **vrais GIFs animés grand format**, comme dans 
 - Utiliser des éléments médias contrôlés, une politique CSP stricte, des contrôles MIME/tailles et une liste de sources autorisées.
 - Limiter nombre de GIFs, décodage, fréquence de chargement, poids, dimensions et cache pour empêcher le spam et la consommation excessive de RAM/CPU.
 - Ne jamais télécharger ou exécuter les fichiers proposés par les utilisateurs.
-- Publier le code et les dépendances, tenir les versions et dépendances à jour ; aucune clé API secrète en dur dans le client.
+- Publier le code et les dépendances, tenir les versions et dépendances à jour ; ne jamais intégrer de véritables secrets (OAuth, jetons privés). La clé KLIPY est une **clé publique d'application embarquée**, techniquement récupérable dans le paquet. Le fichier de configuration local est ignoré par Git pour éviter une publication accidentelle, sans prétendre la cacher aux spectateurs.
 - Pour les actions de modération, vérifier **côté serveur** l'identité et les droits Twitch du streamer/modérateur via OAuth à privilèges minimaux. Ne pas faire confiance à un simple indicateur local « modo ».
 - Séparer les jetons des données médias ; ne jamais logger ni exposer les jetons.
 
@@ -112,9 +112,10 @@ Services externes minimaux
 - [x] Script de contenu limité à Twitch et détection de marqueurs sur des lignes de chat simulées, avec suppression du GIF quand la ligne disparaît.
 - [x] Bouton de test GIF injecté près de l'éditeur (insertion native du marqueur, envoi manuel).
 - [ ] Vérifier les sélecteurs Twitch et le comportement de l'éditeur sur la page réelle.
-- [x] Sélection d'un vrai GIF via lien GIPHY, aperçu, marqueur court et insertion dans l'éditeur Slate sans API.
-- [x] Validation stricte des liens entrants et rendu depuis `media.giphy.com` ; six images maximum.
-- [ ] Recherche intégrée de GIFs de réaction/memes/films, sans clé individuelle ni licence payante ; favoris non développés.
+- [x] **Historique v0.5** : sélection d'un GIF via lien GIPHY (fonction remplacée en v0.7).
+- [x] **v0.7** : recherche intégrée de vrais GIFs KLIPY, prévisualisations, pagination et choix dans l'éditeur Slate, sans clé individuelle.
+- [x] **v0.7** : résolution d'un ID dans un contexte sans historique, rendu des GIFs, limitation à six médias et restauration du marqueur au retrait.
+- [ ] Validation commerciale/Production KLIPY et favoris ; aucune licence ou quota illimité annoncé.
 - Éprouver les changements de page, le lazy loading et les messages supprimés.
 - Vérifier les règles Twitch et la licence du fournisseur GIF avant diffusion.
 
@@ -133,6 +134,8 @@ Services externes minimaux
 **Décision v0.5.0 (2026-11-05) :** l'utilisateur refuse les catalogues d'emotes (7TV), les clés API individuelles et les licences payantes. Anciennes intégrations de recherche GIPHY et 7TV retirées. Le bouton GIF accepte désormais une URL publique GIPHY collée manuellement, extrait l'identifiant, envoie un marqueur court `[gifrift:g:ID]` et affiche la version GIF du CDN aux clients équipés. Aucun service worker, aucune permission d'accès à une API, aucune clé. Tests Selenium réussis sur lien accepté/refusé, insertion, Entrée, suppression, réglages d'animation et 100 messages. CDN GIF public vérifié par HEAD (200, `image/gif`, 243 967 octets). Recherche native toujours non résolue.
 
 **v0.6.0 (2026-11-05) :** le bouton GIF ouvre une fenêtre Chrome de 640 × 730 px avec la recherche native GIPHY (`chrome.windows.create`). Un content script n'intercepte les clics sur les fiches `/gifs/...` que si la fenêtre est celle créée par GIFRIFT, puis envoie un identifiant validé au script Twitch du bon onglet via `chrome.tabs.sendMessage`. Le champ Slate est préparé sans envoi automatique ; la fenêtre se ferme après confirmation. Le repli manuel par lien est conservé. La recherche GIPHY ne peut être incorporée dans une iframe car le site renvoie `X-Frame-Options: DENY`. Vérification du HTML de recherche publique avec 66 occurrences de liens `/gifs/`, tests Node de la communication et Selenium des deux côtés réussis. Pas de clé API, abonnement, téléchargement systématique ou backend GIFRIFT.
+
+**v0.7.0 (2026-11-05) :** intégration KLIPY v2 remplaçant le parcours GIPHY : petite grille intégrée sous Twitch `twitch.js`, recherche avec délai 450 ms, chargement des pages suivantes sur clic, choix puis insertion dans Slate, aucune publication automatique. `background.js` utilise le client borné `klipy-api.js` et `klipy-config.js` ignoré par Git. La clé unique d'application a été déchiffrée via DPAPI sur le poste sans l'afficher ni la versionner. Les URLs GIF KLIPY restent inchangées ; seules celles de `static.klipy.com` sont acceptées. Le format de marqueur `[gifrift:k:ID]` transporte un ID décimal en chaîne. Les anciens GIPHY ne sont pas convertis. Tests Node (8 réussis), Selenium sur chat fictif et régression de la démo ; appels KLIPY 200 pour recherche, tendances, pagination et résolution depuis deux instances du client. La configuration locale est prête à être incluse dans un paquet, mais une archive GitHub seule n'est pas installable sans configuration. Clé Beta : présumer 100 appels/heure pour l'application jusqu'à confirmation dans le Partner Panel. Validation Production, droits/quotas et modération synchrone encore non obtenus. La validation réelle dans Chrome sur Twitch et un second profil reste à faire.
 
 ### Phase C : modération synchronisée
 

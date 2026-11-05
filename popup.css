@@ -2,7 +2,8 @@
 * { box-sizing: border-box; }
 body { margin: 0; width: 360px; }
 main { padding: 16px; }
-header { display:flex; align-items:baseline; justify-content:space-between; gap:10px; border-bottom:1px solid #41374e; padding-bottom:9px; }
+header { display:flex; align-items:center; justify-content:space-between; gap:10px; border-bottom:1px solid #41374e; padding-bottom:9px; }
+header img { display:block; object-fit:contain; width:104px; height:104px; }
 header strong { letter-spacing:.15em; font-size:19px; color:#c5a4ff; }
 header span,.note { color:#c1b9cd; font-size:12px; }
 p { margin:11px 0; }

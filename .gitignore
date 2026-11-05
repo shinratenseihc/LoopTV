@@ -24,3 +24,6 @@ __pycache__/
 Thumbs.db
 Desktop.ini
 *.log
+
+# KLIPY application key bundled only in local distribution builds
+klipy-config.js

@@ -1,36 +1,38 @@
 (() => {
   "use strict";
-  const MARKER_PATTERN = /^\[gifrift:g:([A-Za-z0-9]{6,40})\]$/;
+  const ID = /^\d{1,32}$/;
+  const MARKER = /^\[gifrift:k:(\d{1,32})\]$/;
+  const DEMO = "[gifrift:demo]";
   const MAX_GIFS = 6;
   const INPUT_SELECTOR = '[data-a-target="chat-input"][contenteditable="true"], [data-a-target="chat-input"] [contenteditable="true"]';
   const BUTTONS_SELECTOR = '[data-test-selector="chat-input-buttons-container"]';
   const ROW_SELECTOR = '.chat-line__message, [data-a-target="chat-line-message"]';
   const motion = matchMedia("(prefers-reduced-motion: reduce)");
+  const pending = new Set();
+  const failed = new Set();
+  const pendingInputs = new WeakSet();
   let enabled = true;
   let allowMotion = false;
   let queued = false;
   let knownInput = null;
   let knownButton = null;
   let picker = null;
-  const pendingInputs = new WeakSet();
-  const markerId = text => text === "[gifrift:demo]" ? "demo" : (MARKER_PATTERN.exec(text)?.[1] ?? null);
+  let browseSerial = 0;
+  let searchTimer;
+  let lastChannel = location.pathname.split("/")[1] ?? "";
 
-  function giphyId(link) {
-    if (typeof link !== "string" || link.length > 1024) return null;
-    let url;
-    try { url = new URL(link.trim()); } catch { return null; }
-    if (url.protocol !== "https:" || url.username || url.password) return null;
-    const host = url.hostname.toLowerCase();
-    let id = null;
-    if (host === "giphy.com" || host === "www.giphy.com") {
-      const parts = url.pathname.split("/").filter(Boolean);
-      if (parts.length === 2 && parts[0] === "gifs") id = parts[1].split("-").at(-1);
-      if (parts.length === 2 && parts[0] === "media") id = parts[1];
-    } else if (/^media\d*\.giphy\.com$/.test(host)) {
-      const match = /^\/media\/([A-Za-z0-9]{6,40})\/[^/]+\.(?:gif|webp)$/.exec(url.pathname);
-      id = match?.[1];
-    }
-    return /^[A-Za-z0-9]{6,40}$/.test(id ?? "") ? id : null;
+  function readMarker(text) {
+    if (text === DEMO) return { provider: "demo", id: "demo" };
+    const id = typeof text === "string" ? MARKER.exec(text)?.[1] : null;
+    return id ? { provider: "klipy", id } : null;
+  }
+
+  function ask(action, data = {}) {
+    return new Promise(resolve => {
+      chrome.runtime.sendMessage({ type: "klipy", action, ...data }, response => {
+        resolve(chrome.runtime.lastError ? { error: "network" } : response ?? { error: "unavailable" });
+      });
+    });
   }
 
   function insertMarker(input, marker) {
@@ -60,83 +62,141 @@
     return true;
   }
 
+  function closePicker() {
+    if (picker) picker.hidden = true;
+    ++browseSerial;
+    clearTimeout(searchTimer);
+  }
+
   function openPicker(bar) {
     const host = bar.closest(".chat-input") ?? bar.parentElement;
     if (!host) return;
     if (picker?.isConnected && picker.parentElement === host) {
-      picker.hidden = !picker.hidden;
-      if (!picker.hidden) picker.querySelector("input").focus();
+      if (!picker.hidden) closePicker();
+      else {
+        picker.hidden = false;
+        picker.querySelector(".gifrift-search").focus();
+      }
       return;
     }
     picker?.remove();
-    picker = document.createElement("section");
-    picker.className = "gifrift-picker";
-    picker.setAttribute("aria-label", "Partager un GIF GIPHY");
+    const panel = document.createElement("section");
+    picker = panel;
+    panel.className = "gifrift-picker";
+    panel.setAttribute("aria-label", "Sélectionner un GIF KLIPY");
     const heading = document.createElement("div");
     heading.className = "gifrift-picker-heading";
     const title = document.createElement("strong");
-    title.textContent = "GIFRIFT";
+    title.textContent = "LoopTV · GIFs";
     const close = document.createElement("button");
     close.type = "button";
     close.textContent = "×";
-    close.setAttribute("aria-label", "Fermer");
-    close.addEventListener("click", () => { picker.hidden = true; });
+    close.setAttribute("aria-label", "Fermer le sélecteur");
+    close.addEventListener("click", closePicker);
     heading.append(title, close);
-    const searchLink = document.createElement("a");
-    searchLink.href = "https://giphy.com/search/gifs";
-    searchLink.target = "_blank";
-    searchLink.rel = "noopener noreferrer";
-    searchLink.textContent = "Chercher un GIF sur GIPHY";
-    searchLink.className = "gifrift-search-link";
-    const input = document.createElement("input");
-    input.type = "url";
-    input.placeholder = "Colle ici le lien du GIF";
-    input.setAttribute("aria-label", "Lien GIPHY");
-    input.maxLength = 1024;
-    const info = document.createElement("p");
-    info.className = "gifrift-picker-info";
-    info.setAttribute("role", "status");
-    const preview = document.createElement("img");
-    preview.className = "gifrift-link-preview";
-    preview.alt = "Aperçu du GIF";
-    preview.hidden = true;
-    const select = document.createElement("button");
-    select.className = "gifrift-insert";
-    select.type = "button";
-    select.textContent = "Insérer dans le chat";
-    select.disabled = true;
-    input.addEventListener("input", () => {
-      const id = giphyId(input.value);
-      select.disabled = !id;
-      preview.hidden = !id;
-      if (id) {
-        preview.src = `https://media.giphy.com/media/${id}/200.gif`;
-        info.textContent = "GIF prêt. L'envoi reste manuel avec Entrée.";
-      } else {
-        preview.removeAttribute("src");
-        info.textContent = "Colle le lien d'un GIF GIPHY.";
-      }
-    });
-    select.addEventListener("click", () => {
-      const id = giphyId(input.value);
-      if (!id) return;
-      if (insertMarker(document.querySelector(INPUT_SELECTOR), `[gifrift:g:${id}]`)) picker.hidden = true;
-      else info.textContent = "Efface d'abord le message déjà présent dans le chat.";
-    });
-    picker.addEventListener("keydown", event => {
-      if (event.key !== "Escape") return;
-      event.preventDefault();
-      picker.hidden = true;
-      knownButton?.focus();
-    });
-    info.textContent = "Colle le lien d'un GIF GIPHY.";
+    const search = document.createElement("input");
+    search.className = "gifrift-search";
+    search.type = "search";
+    search.maxLength = 80;
+    search.placeholder = "Search KLIPY";
+    search.setAttribute("aria-label", "Search KLIPY");
+    const status = document.createElement("p");
+    status.className = "gifrift-picker-info";
+    status.setAttribute("role", "status");
+    const grid = document.createElement("div");
+    grid.className = "gifrift-picker-grid";
+    grid.setAttribute("aria-label", "Résultats GIF KLIPY");
+    const more = document.createElement("button");
+    more.type = "button";
+    more.className = "gifrift-more";
+    more.textContent = "Voir plus";
+    more.hidden = true;
     const credit = document.createElement("div");
     credit.className = "gifrift-attribution";
-    credit.textContent = "GIF hébergé par GIPHY";
-    picker.append(heading, searchLink, input, info, preview, select, credit);
+    credit.textContent = "Powered by KLIPY";
+    panel.append(heading, search, status, grid, more, credit);
     host.classList.add("gifrift-picker-host");
-    host.append(picker);
-    input.focus();
+    host.append(panel);
+    const state = { query: "", next: "", busy: false, page: 0 };
+
+    async function load(moreResults = false) {
+      if (state.busy || panel.hidden || !panel.isConnected) return;
+      if (moreResults && !state.next) return;
+      state.busy = true;
+      const serial = browseSerial;
+      more.hidden = true;
+      status.textContent = moreResults ? "Chargement des GIFs suivants…" : "Recherche des GIFs…";
+      if (!moreResults) grid.replaceChildren();
+      const response = await ask("browse", { query: state.query, pos: moreResults ? state.next : "" });
+      state.busy = false;
+      if (serial !== browseSerial || !panel.isConnected || panel.hidden) return;
+      if (response.error) {
+        status.textContent = ({
+          "missing-key": "Configuration KLIPY absente.",
+          "invalid-key": "Clé d’application KLIPY refusée.",
+          "rate-limit": "Limite KLIPY atteinte. Réessaie plus tard.",
+          network: "Connexion KLIPY indisponible."
+        })[response.error] ?? "Recherche indisponible. Réessaie.";
+        more.hidden = !state.next;
+        return;
+      }
+      const gifs = Array.isArray(response.gifs) ? response.gifs : [];
+      state.next = typeof response.next === "string" && response.next !== "0" ? response.next : "";
+      state.page++;
+      for (const gif of gifs) {
+        if (!ID.test(gif.id ?? "") || typeof gif.preview !== "string") continue;
+        const choice = document.createElement("button");
+        choice.type = "button";
+        choice.className = "gifrift-choice";
+        choice.title = gif.title || "GIF KLIPY";
+        choice.setAttribute("aria-label", gif.title || "Choisir ce GIF");
+        const img = document.createElement("img");
+        img.src = gif.preview;
+        img.alt = gif.title || "GIF KLIPY";
+        img.loading = "lazy";
+        img.decoding = "async";
+        img.referrerPolicy = "no-referrer";
+        choice.append(img);
+        choice.addEventListener("click", () => {
+          const ok = insertMarker(document.querySelector(INPUT_SELECTOR), `[gifrift:k:${gif.id}]`);
+          if (ok) closePicker();
+          else status.textContent = "Efface d’abord ton message actuel.";
+        });
+        grid.append(choice);
+      }
+      status.textContent = grid.childElementCount ? "Clique sur un GIF, puis envoie avec Entrée." : "Aucun GIF trouvé.";
+      more.hidden = !state.next || gifs.length === 0;
+    }
+    function newSearch() {
+      clearTimeout(searchTimer);
+      ++browseSerial;
+      state.query = search.value;
+      state.next = "";
+      state.page = 0;
+      state.busy = false;
+      searchTimer = setTimeout(() => load(), 450);
+    }
+    search.addEventListener("input", newSearch);
+    search.addEventListener("keydown", event => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        clearTimeout(searchTimer);
+        ++browseSerial;
+        state.query = search.value;
+        state.next = "";
+        state.busy = false;
+        load();
+      }
+    });
+    more.addEventListener("click", () => load(true));
+    panel.addEventListener("keydown", event => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      closePicker();
+      knownButton?.focus();
+    });
+    search.focus();
+    load();
   }
 
   function clean(row) {
@@ -147,62 +207,115 @@
     media.remove();
   }
 
-  function renderGif(row, source, id) {
-    if (!row.isConnected || !source.isConnected || row.querySelector("[data-gifrift-media]")) return;
+  function renderGif(row, source, marker, details) {
+    if (!row.isConnected || !source.isConnected || row.querySelector("[data-gifrift-media]") ||
+        readMarker(source.textContent)?.id !== marker.id) return;
     const container = document.createElement("span");
     container.dataset.gifriftMedia = "1";
-    container.dataset.gifriftId = id;
+    container.dataset.gifriftId = marker.id;
     container.className = "gifrift-media-container";
     const image = document.createElement("img");
     image.className = "gifrift-media";
-    image.alt = "GIF animé partagé avec GIFRIFT";
+    image.alt = details?.title || "GIF animé KLIPY";
     image.loading = "lazy";
     image.decoding = "async";
     image.referrerPolicy = "no-referrer";
+    if (Number.isInteger(details?.width)) image.width = Math.min(details.width, 300);
+    if (Number.isInteger(details?.height)) image.height = Math.min(details.height, 240);
     image.addEventListener("load", () => {
-      if (container.isConnected && enabled && (!motion.matches || allowMotion)) source.hidden = true;
+      if (container.isConnected && enabled && (!motion.matches || allowMotion) &&
+          readMarker(source.textContent)?.id === marker.id) source.hidden = true;
     }, { once: true });
-    image.addEventListener("error", () => { clean(row); }, { once: true });
-    image.src = id === "demo" ? chrome.runtime.getURL("assets/demo.gif") : `https://media.giphy.com/media/${id}/200.gif`;
+    image.addEventListener("error", () => {
+      clean(row);
+      if (marker.provider === "klipy") markFailed(marker.id);
+      schedule();
+    }, { once: true });
+    image.src = marker.provider === "demo" ? chrome.runtime.getURL("assets/demo.gif") : details.media;
     const credit = document.createElement("span");
     credit.className = "gifrift-attribution";
-    credit.textContent = "GIF via GIPHY";
+    credit.textContent = marker.provider === "demo" ? "LoopTV demo" :
+      `Powered by KLIPY${details.source ? " · " + details.source : ""}`;
     container.append(image, credit);
     source.after(container);
   }
 
+  function markFailed(id) {
+    failed.add(id);
+    if (failed.size > 64) failed.delete(failed.values().next().value);
+  }
+
+  async function resolve(ids) {
+    const response = await ask("resolve", { ids });
+    for (const id of ids) pending.delete(id);
+    if (response.error) {
+      for (const id of ids) markFailed(id);
+      schedule();
+      return;
+    }
+    const found = new Map((Array.isArray(response.gifs) ? response.gifs : [])
+      .filter(gif => ID.test(gif.id ?? "")).map(gif => [gif.id, gif]));
+    for (const id of ids) if (!found.has(id)) markFailed(id);
+    if (enabled && (!motion.matches || allowMotion)) {
+      let shown = document.querySelectorAll("[data-gifrift-media]").length;
+      for (const row of document.querySelectorAll(ROW_SELECTOR)) {
+        if (shown >= MAX_GIFS) break;
+        if (row.querySelector("[data-gifrift-media]")) continue;
+        const source = [...row.querySelectorAll(".text-fragment")].find(node => {
+          const marker = readMarker(node.textContent);
+          return marker?.provider === "klipy" && found.has(marker.id) && !node.closest("a,button");
+        });
+        if (!source) continue;
+        const marker = readMarker(source.textContent);
+        if (!marker || !found.has(marker.id)) continue;
+        renderGif(row, source, marker, found.get(marker.id));
+        shown++;
+      }
+    }
+    schedule();
+  }
+
   function update() {
     queued = false;
+    if (!document.body) return;
+    const channel = location.pathname.split("/")[1] ?? "";
+    if (channel !== lastChannel) {
+      lastChannel = channel;
+      failed.clear();
+      closePicker();
+    }
     const input = document.querySelector(INPUT_SELECTOR);
     const bar = document.querySelector(BUTTONS_SELECTOR);
-    if (input && bar && (input !== knownInput || knownButton?.parentElement !== bar)) {
+    const send = bar?.querySelector('[data-a-target="chat-send-button"]');
+    const sendContainer = send && [...bar.children].find(child => child.contains(send));
+    const buttonHost = sendContainer || bar;
+    if (input && bar && (input !== knownInput || knownButton?.parentElement !== buttonHost)) {
+      knownButton?.parentElement?.classList.remove("gifrift-send-group");
       knownButton?.remove();
       knownInput = input;
       const button = document.createElement("button");
       button.type = "button";
       button.className = "gifrift-button";
       button.textContent = "GIF";
-      button.setAttribute("aria-label", "Ouvrir la recherche de GIFs");
-      button.title = "GIFRIFT : chercher une animation GIPHY";
-      button.addEventListener("click", () => {
-        chrome.runtime.sendMessage({ type: "open-giphy" }, response => {
-          if (chrome.runtime.lastError || !response?.ok) openPicker(bar);
-        });
-      });
-      const controls = [...bar.children].find(child => child.querySelector(".shield-mode-shortcut__btn"));
-      const send = bar.querySelector('[data-a-target="chat-send-button"]');
-      const sendContainer = [...bar.children].find(child => child.contains(send));
-      if (controls || sendContainer) bar.insertBefore(button, controls || sendContainer);
+      button.setAttribute("aria-label", "Ouvrir la recherche GIF KLIPY");
+      button.title = "LoopTV : chercher un GIF";
+      button.addEventListener("click", () => openPicker(bar));
+      if (sendContainer) {
+        sendContainer.classList.add("gifrift-send-group");
+        sendContainer.prepend(button);
+      }
       else bar.append(button);
       knownButton = button;
     } else if (!input || !bar) {
       knownInput = null;
+      knownButton?.parentElement?.classList.remove("gifrift-send-group");
       knownButton?.remove();
       knownButton = null;
       picker?.remove();
       picker = null;
     }
     let shown = 0;
+    const ids = [];
     for (const row of document.querySelectorAll(ROW_SELECTOR)) {
       const existing = row.querySelector("[data-gifrift-media]");
       if (!enabled || (motion.matches && !allowMotion) || shown >= MAX_GIFS) {
@@ -211,16 +324,24 @@
       }
       if (existing) {
         const source = existing.previousElementSibling;
-        const id = markerId(source?.textContent);
-        if (id !== existing.dataset.gifriftId) clean(row);
+        if (readMarker(source?.textContent)?.id !== existing.dataset.gifriftId) clean(row);
         else { shown++; continue; }
       }
       const fragment = [...row.querySelectorAll(".text-fragment")]
-        .find(el => markerId(el.textContent) && !el.closest("a,button"));
+        .find(el => readMarker(el.textContent) && !el.closest("a,button"));
       if (!fragment) continue;
-      const id = markerId(fragment.textContent);
-      renderGif(row, fragment, id);
-      shown++;
+      const marker = readMarker(fragment.textContent);
+      if (marker.provider === "demo") {
+        renderGif(row, fragment, marker, { title: "GIF de démonstration" });
+        shown++;
+      } else if (!pending.has(marker.id) && !failed.has(marker.id) &&
+                 !ids.includes(marker.id) && shown + pending.size + ids.length < MAX_GIFS) {
+        ids.push(marker.id);
+      }
+    }
+    if (ids.length) {
+      for (const id of ids) pending.add(id);
+      resolve(ids);
     }
   }
 
@@ -230,9 +351,9 @@
     requestAnimationFrame(update);
   }
   motion.addEventListener("change", schedule);
-  chrome.storage.local.get({ enabled: true, allowMotion: false }, values => {
-    enabled = values.enabled !== false;
-    allowMotion = values.allowMotion === true;
+  chrome.storage.local.get({ enabled: true, allowMotion: false }, settings => {
+    enabled = settings.enabled !== false;
+    allowMotion = settings.allowMotion === true;
     schedule();
   });
   chrome.storage.onChanged.addListener((changes, area) => {
@@ -241,11 +362,8 @@
     if (changes.allowMotion) allowMotion = changes.allowMotion.newValue === true;
     schedule();
   });
-  chrome.runtime.onMessage.addListener((message, sender, respond) => {
-    if (message?.type !== "gifrift-insert" || !/^[A-Za-z0-9]{6,40}$/.test(message.id ?? "")) return;
-    const ok = insertMarker(document.querySelector(INPUT_SELECTOR), `[gifrift:g:${message.id}]`);
-    respond({ ok });
+  new MutationObserver(schedule).observe(document.documentElement, {
+    childList: true, subtree: true, characterData: true
   });
-  new MutationObserver(schedule).observe(document.documentElement, { childList: true, subtree: true, characterData: true });
   schedule();
 })();

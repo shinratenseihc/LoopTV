@@ -1,20 +1,22 @@
-.chat-input__buttons-container > .gifrift-button { flex: 0 0 auto; align-self: center; height: 28px; padding: 0 8px; margin: 0 6px; border: 1px solid rgba(169,112,255,.5); border-radius: 6px; background: transparent; color: #dedee3; cursor: pointer; font: 600 12px system-ui,sans-serif; }
-.chat-input__buttons-container > .gifrift-button:hover { background: rgba(169,112,255,.2); color: #fff; }
-.chat-input__buttons-container > .gifrift-button:focus-visible { outline: 2px solid #a970ff; outline-offset: 2px; }
-.gifrift-media { display: block; width: auto; height: auto; max-width: min(300px,100%); max-height: 240px; margin-top: 4px; border-radius: 7px; }
+.chat-input__buttons-container > .gifrift-send-group { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 6px; }
+.gifrift-send-group > .gifrift-button { flex: 0 0 auto; box-sizing: border-box; height: 32px; padding: 0 12px; border: 0; border-radius: 9000px; background: #9147ff; color: #fff; cursor: pointer; font: 600 14px/1 system-ui,sans-serif; }
+.gifrift-send-group > .gifrift-button:hover { background: #772ce8; }
+.gifrift-send-group > .gifrift-button:focus-visible { outline: 2px solid #bf94ff; outline-offset: 2px; }
+.gifrift-media { display: block; width: auto; height: auto; max-width: min(300px,100%); max-height: 240px; margin-top: 4px; border-radius: 7px; object-fit: contain; }
 .chat-line__message [data-gifrift-media] { vertical-align: top; }
-.chat-input.gifrift-picker-host { position: relative; }
-.gifrift-picker { position: absolute; right: 4px; bottom: 40px; width: min(320px, 98%); max-height: 420px; padding: 12px; z-index: 100; background: #17131e; border: 1px solid #6f518b; border-radius: 10px; box-shadow: 0 10px 30px #0009; color: #f1ecf7; font: 13px/1.4 system-ui,sans-serif; }
-.gifrift-picker[hidden] { display: none; }
-.gifrift-picker-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; color: #c6a1ff; letter-spacing: .08em; }
-.gifrift-picker-heading button { border: none; background: transparent; color: #ddd; font-size: 22px; line-height: 1; padding: 0 4px; cursor: pointer; }
-.gifrift-picker input[type=url] { box-sizing: border-box; width: 100%; min-height: 32px; background: #292036; border: 1px solid #76579f; border-radius: 5px; padding: 6px 8px; color: #fff; font: inherit; }
-.gifrift-picker-info { min-height: 16px; margin: 8px 0; color: #c9c0d5; font-size: 11px; }
-.gifrift-attribution { display: block; margin-top: 6px; color: #b3a8c2; text-align: right; font: 10px/1.3 system-ui,sans-serif; letter-spacing: .04em; }
 .gifrift-media-container { display: block; max-width: 300px; }
-.gifrift-media-container .gifrift-attribution { margin-top: 2px; }
-.gifrift-picker .gifrift-search-link { display: inline-block; padding: 6px 0 10px; color: #d6b5ff; text-decoration: underline; }
-.gifrift-picker .gifrift-insert { display: block; width: 100%; margin-top: 10px; border: 1px solid #9a74d0; border-radius: 6px; background: #5a3686; color: white; cursor: pointer; padding: 8px; }
-.gifrift-picker .gifrift-insert:disabled { opacity: .45; cursor: default; }
-.gifrift-picker .gifrift-link-preview { display: block; max-width: 100%; max-height: 170px; margin: 6px auto; object-fit: contain; }
-.gifrift-picker .gifrift-link-preview[hidden] { display: none; }
+.gifrift-attribution { display: block; margin-top: 4px; color: #b3a8c2; text-align: right; font: 10px/1.3 system-ui,sans-serif; letter-spacing: .03em; }
+.chat-input.gifrift-picker-host { position: relative; }
+.gifrift-picker { box-sizing: border-box; position: absolute; left: 0; right: 0; bottom: 42px; width: 100%; max-height: min(460px,70vh); padding: 10px; z-index: 100; background: #17131e; border: 1px solid #6f518b; border-radius: 10px; box-shadow: 0 10px 30px #0009; color: #f1ecf7; font: 13px/1.4 system-ui,sans-serif; display: flex; flex-direction: column; gap: 7px; }
+.gifrift-picker[hidden], .gifrift-more[hidden] { display: none !important; }
+.gifrift-picker-heading { display: flex; justify-content: space-between; align-items: center; color: #c6a1ff; letter-spacing: .05em; }
+.gifrift-picker-heading button { border: none; background: transparent; color: #ddd; font-size: 22px; line-height: 1; padding: 0 4px; cursor: pointer; }
+.gifrift-search { box-sizing: border-box; width: 100%; min-height: 34px; flex: none; background: #292036; border: 1px solid #76579f; border-radius: 5px; padding: 6px 8px; color: #fff; font: inherit; }
+.gifrift-search:focus-visible, .gifrift-choice:focus-visible, .gifrift-more:focus-visible { outline: 2px solid #c09bff; outline-offset: 1px; }
+.gifrift-picker-info { min-height: 16px; margin: 0; color: #c9c0d5; font-size: 11px; }
+.gifrift-picker-grid { min-height: 0; max-height: 300px; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); align-content: start; gap: 5px; }
+.gifrift-choice { min-width: 0; height: 102px; overflow: hidden; border: 1px solid #443454; border-radius: 5px; background: #221b2d; padding: 0; cursor: pointer; }
+.gifrift-choice:hover { border-color: #c09bff; }
+.gifrift-choice img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.gifrift-more { flex: none; padding: 6px; border: 1px solid #76579f; border-radius: 6px; background: #332243; color: #f5edff; cursor: pointer; }
+.gifrift-picker .gifrift-attribution { text-align: right; margin: 0; }
