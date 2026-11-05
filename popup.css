@@ -12,3 +12,12 @@ input[type=checkbox] { accent-color:#a970ff; }
 input:focus-visible { outline:2px solid #d6baff; outline-offset:2px; }
 footer { margin-top:15px; padding-top:9px; border-top:1px solid #41374e; text-align:right; font-size:11px; color:#c1b9cd; }
 footer strong { color:white; letter-spacing:.12em; }
+.paint-settings { padding: 12px 0; border-top: 1px solid #41374e; border-bottom: 1px solid #41374e; }
+.paint-settings > strong { font-size: 14px; color:#eadbff; }
+.paint-settings small { margin-left:6px; color:#5df5cc; font-size:10px; }
+.paint-settings .toggle { margin: 8px 0; }
+.paint-preview { padding: 9px; background: #21182c; border: 1px solid #514266; border-radius: 7px; }
+#paint-preview-name { font-size: 16px; font-weight: 800; }
+#paint-preview-input { box-sizing:border-box; width:100%; padding:7px 9px; margin-top:8px; color:#fff; background:#292036; border:1px solid #76579f; border-radius:5px; font:inherit; }
+#paint-preview-input:focus-visible { outline:2px solid #d6baff; outline-offset:1px; }
+.paint-settings .note { margin-bottom:0; }

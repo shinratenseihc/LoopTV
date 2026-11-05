@@ -13,6 +13,8 @@
   const pendingInputs = new WeakSet();
   let enabled = true;
   let allowMotion = false;
+  let namePaintsEnabled = true;
+  let namePaintsAnimated = false;
   let queued = false;
   let knownInput = null;
   let knownButton = null;
@@ -284,6 +286,11 @@
       failed.clear();
       closePicker();
     }
+    globalThis.LoopTVNamePaints.sync(document, {
+      enabled: namePaintsEnabled,
+      animated: namePaintsAnimated,
+      reducedMotion: motion.matches
+    });
     const input = document.querySelector(INPUT_SELECTOR);
     const bar = document.querySelector(BUTTONS_SELECTOR);
     const send = bar?.querySelector('[data-a-target="chat-send-button"]');
@@ -351,15 +358,19 @@
     requestAnimationFrame(update);
   }
   motion.addEventListener("change", schedule);
-  chrome.storage.local.get({ enabled: true, allowMotion: false }, settings => {
+  chrome.storage.local.get({ enabled: true, allowMotion: false, namePaintsEnabled: true, namePaintsAnimated: false }, settings => {
     enabled = settings.enabled !== false;
     allowMotion = settings.allowMotion === true;
+    namePaintsEnabled = settings.namePaintsEnabled !== false;
+    namePaintsAnimated = settings.namePaintsAnimated === true;
     schedule();
   });
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== "local") return;
     if (changes.enabled) enabled = changes.enabled.newValue !== false;
     if (changes.allowMotion) allowMotion = changes.allowMotion.newValue === true;
+    if (changes.namePaintsEnabled) namePaintsEnabled = changes.namePaintsEnabled.newValue !== false;
+    if (changes.namePaintsAnimated) namePaintsAnimated = changes.namePaintsAnimated.newValue === true;
     schedule();
   });
   new MutationObserver(schedule).observe(document.documentElement, {

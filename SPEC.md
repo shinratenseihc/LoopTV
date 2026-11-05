@@ -1,6 +1,6 @@
 # GIFRIFT | Cahier des charges et feuille de route
 
-**Statut :** GIFRIFT v0.7.0 (2026-11-05). Panneau de recherche GIF KLIPY intégré au chat Twitch, pagination manuelle, marqueur `[gifrift:k:ID]` via Slate et résolution chez les spectateurs avec la même extension configurée. Tests KLIPY v2 réels (recherche, tendances, pagination, résolution) réussis avec clé DPAPI locale ; tests Chrome headless du panneau et rendu en simulation réussis. Rechargement/validation manuelle dans Twitch réel restant à effectuer. Pas de reset Git ni push.
+**Statut :** LoopTV v0.7.0 publiée sur GitHub. La branche locale `feat/free-name-paints` prépare **v0.8.0 expérimentale**, isolée de la version publique. Panneau GIF KLIPY, pagination et marqueur `[gifrift:k:ID]` conservés. Ajout de dégradés gratuits et déterministes, réglage et aperçu, avec tests simulés ; validation sur Twitch réel restant à effectuer.
 **Date :** 2026-11-04
 **Emplacement :** `F:\AI Projects\GIFRIFT`
 **Cible :** extension de navigateur pour le chat Twitch, gratuite et open source.
@@ -148,6 +148,17 @@ Services externes minimaux
 - Tests multi-navigateurs, audit sécurité et publication open source.
 - Documentation d'installation, politique de confidentialité et Chrome Web Store.
 - Ajout ultérieur : GIFs personnels, Firefox et détection de doublons.
+
+### Phase E : Name Paints gratuits (branche expérimentale v0.8.0)
+
+- [x] Dégradés de pseudo calculés localement et identiquement sur tous les navigateurs, sans compte ni API supplémentaire.
+- [x] Préférences d'activation et d'animation indépendantes des GIFs, et prévisualisation dans la popup.
+- [x] Restauration de la couleur Twitch native à la désactivation, respect des animations réduites.
+- [x] Tests unitaires et tests Selenium de simulation Twitch/popup, avec régressions GIF, et chargement des paquets sur Brave, Edge et Firefox.
+- [ ] Validation d'affichage dans différents chats Twitch réels et coexistence avec les styles 7TV/BTTV.
+- [ ] Choix personnalisé synchronisé entre utilisateurs, nécessitant une architecture séparée.
+
+Les 8 palettes sont **originales** : ni textures premium 7TV/BTTV, ni déblocage de cosmétiques payants, ni API de suivi des utilisateurs. Détails dans [NAME_PAINTS.md](NAME_PAINTS.md).
 
 ## 8. Critères d'acceptation
 

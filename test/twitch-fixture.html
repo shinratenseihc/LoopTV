@@ -1,6 +1,7 @@
 <!doctype html>
 <html><head><meta charset="utf-8"><title>Twitch fixture</title>
 <link rel="stylesheet" href="../twitch.css">
+<link rel="stylesheet" href="../name-paints.css">
 <style>.chat-input { width:360px; position:relative; margin:650px 0 450px; } .chat-input__buttons-container { display:flex; width:324px; flex-wrap:wrap-reverse; align-items:center; margin-top:8px; } .points-controls { flex:0 0 114px; height:32px; } .moderation-controls { flex:0 0 110px; height:32px; } .send-container { margin-left:4px; } [data-a-target=chat-send-button] { height:32px; border:0; border-radius:9000px; background:#9147ff; color:#fff; padding:0 12px; } .chat-line__message { margin:6px 0; }</style>
 </head>
 <body>
@@ -15,6 +16,8 @@
   </div>
 </div>
 <div id="fixture-chat">
+  <div class="chat-line__message" id="paint-row"><span class="chat-author__display-name" style="color: rgb(255, 0, 0)">ShinraTensei</span><span class="text-fragment"> GG 🔥</span></div>
+  <div class="chat-line__message" id="paint-row-alt"><span data-a-target="chat-message-username">Viewer123</span><span class="text-fragment">Hello</span></div>
   <div class="chat-line__message"><span class="text-fragment">[gifrift:demo]</span></div>
   <div class="chat-line__message"><span class="text-fragment">Message normal</span></div>
 </div>

@@ -1,10 +1,12 @@
-# LoopTV (LTV) v0.7.0 · KLIPY
+# LoopTV (LTV) v0.8.0 expérimental · KLIPY + Name Paints
 
 ![Logo officiel de LoopTV](assets/looptv-logo.webp)
 
 **Conçu par Shinra Tensei · Développé avec [Chat On Steroids](https://github.com/totec448-spec/chat-on-steroids)**
 
 Extension Manifest V3 affichant de **vrais GIFs animés** dans le chat Twitch, sans abonnement Twitch, compte LoopTV ni clé individuelle. Aucun framework ni dépendance npm. Le nom du projet était GIFRIFT ; les marqueurs historiques `[gifrift:k:ID]` restent inchangés pour la compatibilité.
+
+**Branche de développement `feat/free-name-paints` :** Name Paints gratuits pour tous les pseudos Twitch, dégradés déterministes, animation facultative et aperçu. **[Détails et limites](NAME_PAINTS.md)**. Le téléchargement public reste **v0.7.0** tant que cette version n'est pas publiée.
 
 ## 📦 Télécharger LoopTV
 
@@ -23,7 +25,7 @@ Un spectateur disposant de **la même version configurée** de LoopTV résout l'
 
 ## Paquets bêta et publication
 
-- `npm run build` génère `dist/LoopTV-0.7.0-chromium.zip` (Chrome, Brave et Edge) et `dist/LoopTV-0.7.0-firefox.zip` (Firefox). Il inclut la configuration d'application locale **uniquement dans les archives**, jamais dans Git.
+- Sur cette branche, `npm run build` génère `dist/LoopTV-0.8.0-chromium.zip` (Chrome, Brave et Edge) et `dist/LoopTV-0.8.0-firefox.zip` (Firefox). Il inclut la configuration d'application locale **uniquement dans les archives**, jamais dans Git.
 - Pour une installation de développement Chromium, ouvrir `chrome://extensions` (ou `brave://extensions`, `edge://extensions`), activer le mode développeur et **Charger l'extension non empaquetée** depuis `dist/chromium`.
 - Pour Firefox, passer par `about:debugging` → Ce Firefox → Charger un module complémentaire temporaire et choisir `dist/firefox/manifest.json` ; il sera retiré au redémarrage. L'installation permanente nécessite une extension signée par Mozilla.
 - **Ne pas distribuer le ZIP Firefox comme une extension installable définitivement**. Faire signer l'extension via addons.mozilla.org pour un déploiement public ou non répertorié.

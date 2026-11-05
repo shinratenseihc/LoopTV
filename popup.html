@@ -5,13 +5,22 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>LoopTV</title>
   <link rel="stylesheet" href="./popup.css">
+  <link rel="stylesheet" href="./name-paints.css">
 </head>
 <body><main>
-  <header><img src="./assets/looptv-logo.webp" alt="LoopTV" width="104" height="104"><span>v0.7 · KLIPY</span></header>
+  <header><img src="./assets/looptv-logo.webp" alt="LoopTV" width="104" height="104"><span>v0.8 · Bêta</span></header>
   <p>Sur Twitch, clique sur GIF pour rechercher une animation KLIPY dans le chat. Choisis-la, puis envoie avec Entrée.</p>
   <label class="toggle"><input type="checkbox" id="enabled" checked> Activer les GIFs</label>
   <label class="toggle"><input type="checkbox" id="allow-motion"> Animer même si Windows réduit les animations</label>
+  <section class="paint-settings" aria-label="Name Paints gratuits">
+    <strong>Name Paints <small>GRATUIT</small></strong>
+    <label class="toggle"><input type="checkbox" id="name-paints" checked> Pseudos en dégradé dans le chat</label>
+    <label class="toggle"><input type="checkbox" id="name-paints-animated"> Dégradés animés (si mouvement autorisé)</label>
+    <div class="paint-preview" aria-live="polite"><span id="paint-preview-name">LoopTV</span><span> : GG 🔥</span></div>
+    <input id="paint-preview-input" type="text" maxlength="40" value="LoopTV" aria-label="Pseudo à prévisualiser" spellcheck="false">
+    <p class="note">Chaque pseudo reçoit son dégradé, calculé localement. Aucun compte ni serveur. Le choix d'un dégradé personnel synchronisé viendra plus tard.</p>
+  </section>
   <p class="note">Pas de compte ni clé à saisir pour les spectateurs. KLIPY héberge les GIFs et traite les recherches et requêtes médias.</p>
   <footer>Powered by KLIPY · extension indépendante</footer>
-</main><script src="./popup.js"></script></body>
+</main><script src="./name-paints.js"></script><script src="./popup.js"></script></body>
 </html>

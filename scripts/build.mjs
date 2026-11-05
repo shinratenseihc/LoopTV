@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const dist = join(root, "dist");
-const files = ["background.js", "klipy-api.js", "klipy-config.js", "popup.html", "popup.js", "popup.css", "twitch.js", "twitch.css", "assets/demo.gif", "assets/looptv-logo.webp"];
+const files = ["background.js", "klipy-api.js", "klipy-config.js", "popup.html", "popup.js", "popup.css", "twitch.js", "twitch.css", "name-paints.js", "name-paints.css", "assets/demo.gif", "assets/looptv-logo.webp"];
 const icons = [16, 48, 96, 128].map(n => `icons/icon-${n}.png`);
 
 function createManifest(firefox) {
@@ -64,7 +64,7 @@ function main() {
   mkdirSync(dist, { recursive: true });
   const archives = [packageExtension(false), packageExtension(true)];
   for (const archive of archives) console.log(`Créé : ${archive}`);
-  console.log("Clé incluse dans les archives privées, jamais affichée. Ne pas diffuser ces ZIP avant décision de publication.");
+  console.log("Clé bêta incluse dans les archives (extractible côté client), jamais affichée dans les logs.");
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();

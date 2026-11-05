@@ -8,6 +8,9 @@ test("Chromium and Firefox share the same application and Twitch content script"
   assert.equal(chromium.name, "LoopTV");
   assert.equal(chromium.version, firefox.version);
   assert.deepEqual(chromium.content_scripts, firefox.content_scripts);
+  assert.deepEqual(chromium.content_scripts[0].js, ["name-paints.js", "twitch.js"]);
+  assert.deepEqual(chromium.content_scripts[0].css, ["twitch.css", "name-paints.css"]);
+  assert.equal(chromium.version, "0.8.0");
   assert.equal(chromium.background.service_worker, "background.js");
   assert.equal(chromium.background.type, "module");
   assert.ok(!chromium.browser_specific_settings);

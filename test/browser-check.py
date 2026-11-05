@@ -57,7 +57,7 @@ try:
     browser.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {"source": """
       window.savedSettings = {};
       window.chrome = {storage: {local: {
-        get: (_defaults, callback) => callback({enabled: true, allowMotion: false}),
+        get: (_defaults, callback) => callback({enabled: true, allowMotion: false, namePaintsEnabled: true}),
         set: async values => { Object.assign(window.savedSettings, values); }
       }}};
     """})
@@ -65,6 +65,10 @@ try:
     browser.find_element("id", "enabled").click()
     saved = browser.execute_script("return window.savedSettings.enabled")
     assert saved is False, "Settings were not saved"
+    assert browser.execute_script("return getComputedStyle(document.querySelector('#paint-preview-name')).backgroundImage.startsWith('linear-gradient')"), "Paint preview not rendered"
+    browser.find_element("id", "name-paints").click()
+    assert browser.execute_script("return window.savedSettings.namePaintsEnabled") is False, "Paint preference was not saved"
+    assert browser.execute_script("return !document.querySelector('#paint-preview-name').classList.contains('looptv-name-paint')"), "Paint preview off must be unstyled"
     print(json.dumps({"initial": start, "disabled": off, "stress": loaded, "cleared": cleared, "reduced": reduced}, ensure_ascii=False))
 finally:
     browser.quit()
