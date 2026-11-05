@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>GIFRIFT | Phase A</title>
+  <link rel="stylesheet" href="./demo.css">
+</head>
+<body>
+  <main>
+    <header><strong>GIFRIFT</strong><span>Prototype Twitch · réglages</span></header>
+    <p>GIFRIFT affiche les marqueurs compatibles dans le chat Twitch. Ces réglages sont enregistrés sur ton navigateur.</p>
+    <label class="toggle"><input id="enabled" type="checkbox" checked> Activer les GIFs</label>
+    <label class="toggle"><input id="allow-motion" type="checkbox"> Autoriser les GIFs animés même si Windows réduit les animations</label>
+    <p id="motion" class="hint" role="status"></p>
+    <section aria-label="Chat de démonstration" id="chat" class="chat" aria-live="off">
+      <div class="message"><b>Testeur :</b> <span data-chat-message>[gifrift:demo]</span></div>
+      <div class="message"><b>Viewer :</b> <span data-chat-message>Salut le chat 👋</span></div>
+      <div class="message"><b>Inconnu :</b> <span data-chat-message>[gifrift:unknown]</span></div>
+    </section>
+    <div class="controls">
+      <button type="button" id="add">Ajouter un GIF</button>
+      <button type="button" id="remove">Supprimer le dernier message</button>
+      <button type="button" id="stress">Simuler 100 messages</button>
+      <button type="button" id="clear">Vider le chat</button>
+    </div>
+    <output id="stats" role="status"></output>
+    <p class="hint">Maximum six GIFs simultanés. Par défaut, GIFRIFT respecte le réglage Windows de réduction des animations.</p>
+  </main>
+  <script type="module" src="./demo.js"></script>
+</body>
+</html>

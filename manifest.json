@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "GIFRIFT",
+  "version": "0.6.1",
+  "description": "Recherche GIPHY en fenêtre compacte : uniquement recherche et GIFs, sans clé API.",
+  "action": {
+    "default_title": "GIFRIFT",
+    "default_popup": "popup.html"
+  },
+  "permissions": ["storage"],
+  "background": { "service_worker": "background.js" },
+  "content_scripts": [
+    {
+      "matches": ["https://www.twitch.tv/*"],
+      "js": ["twitch.js"],
+      "css": ["twitch.css"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://giphy.com/*", "https://www.giphy.com/*"],
+      "js": ["giphy-picker.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [{
+    "resources": ["assets/demo.gif"],
+    "matches": ["https://www.twitch.tv/*"]
+  }],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}

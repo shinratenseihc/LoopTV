@@ -1,0 +1,47 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Twitch fixture</title></head>
+<body>
+<div class="chat-input">
+  <div class="chat-wysiwyg-input-box">
+    <div data-a-target="chat-input" data-slate-editor="true" class="chat-wysiwyg-input__editor" contenteditable="true" role="textbox"><div data-slate-node="element"><span data-slate-node="text"><span data-slate-leaf="true"><span data-slate-zero-width="n">&#65279;<br></span></span></span></div></div>
+  </div>
+  <div class="chat-input__buttons-container" data-test-selector="chat-input-buttons-container">
+    <div class="send-container"><button type="button" data-a-target="chat-send-button">Chat</button></div>
+  </div>
+</div>
+<div id="fixture-chat">
+  <div class="chat-line__message"><span class="text-fragment">[gifrift:demo]</span></div>
+  <div class="chat-line__message"><span class="text-fragment">Message normal</span></div>
+</div>
+<script>
+  // A controlled editor: submission reads model state, not text visually inserted into DOM.
+  const editor = document.querySelector('[data-a-target="chat-input"]');
+  const state = {text: "", submitted: []};
+  window.fixtureState = state;
+  // Simulate a public GIPHY image without any external request during the test.
+  const imageSrc = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, "src");
+  Object.defineProperty(HTMLImageElement.prototype, "src", {
+    get() { return imageSrc.get.call(this); },
+    set(value) {
+      imageSrc.set.call(this, value.startsWith("https://media.giphy.com/media/")
+        ? "/assets/demo.gif" : value);
+    }
+  });
+  editor.addEventListener("beforeinput", event => {
+    if (event.inputType !== "insertText") return;
+    const selected = document.getSelection()?.anchorNode;
+    if (!selected || !editor.contains(selected)) return;
+    event.preventDefault();
+    state.text += event.data;
+    const leaf = editor.querySelector("[data-slate-leaf]");
+    leaf.textContent = state.text;
+  });
+  editor.addEventListener("keydown", event => {
+    if (event.key !== "Enter" || !state.text) return;
+    event.preventDefault();
+    state.submitted.push(state.text);
+    state.text = "";
+    editor.querySelector("[data-slate-leaf]").textContent = "\uFEFF";
+  });
+</script>
+</body></html>
