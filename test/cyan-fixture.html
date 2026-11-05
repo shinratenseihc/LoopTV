@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>TransparentTwitchChat / Cyan Chat fixture</title>
+  <link rel="stylesheet" href="../cyan-chat.css">
+</head>
+<body>
+  <div id="chat_container">
+    <div class="chat_line"><span class="nick">ViewerOne</span><span class="message" id="new-marker">[ltv:k:12345678]</span></div>
+    <div class="chat_line"><span class="nick">ViewerTwo</span><span class="message" id="legacy-marker">[gifrift:k:23456789]</span></div>
+    <div class="chat_line"><span class="nick">ViewerThree</span><span class="message" id="plain-message">Hello</span></div>
+    <div class="chat_line"><span class="nick">ViewerFour</span><span class="message" id="invalid-marker">[ltv:k:123] not a marker</span></div>
+  </div>
+  <script>
+    window.apiCalls = [];
+    window.chrome = {runtime: {
+      lastError: null,
+      sendMessage(message, respond) {
+        window.apiCalls.push(message);
+        const gifs = (message.ids || []).map(id => ({
+          id, media: "https://static.klipy.com/fixture.gif", width: 180, height: 140, title: "LoopTV GIF"
+        }));
+        setTimeout(() => respond({gifs}), 0);
+      }
+    }};
+    const original = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, "src");
+    Object.defineProperty(HTMLImageElement.prototype, "src", {
+      configurable: true,
+      get() {return original.get.call(this);},
+      set(value) {
+        original.set.call(this, value);
+        if (value === "https://static.klipy.com/fixture.gif") {
+          setTimeout(() => this.dispatchEvent(new Event("load")), 0);
+        }
+      }
+    });
+  </script>
+</body>
+</html>

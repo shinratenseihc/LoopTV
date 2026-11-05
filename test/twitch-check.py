@@ -173,7 +173,7 @@ try:
     """)
     browser.find_element("css selector", ".gifrift-choice").click()
     time.sleep(.1)
-    marker = "[gifrift:k:2222222222222222]"
+    marker = "[ltv:k:2222222222222222]"
     assert js("window.fixtureState.text") == marker, "Slate model was not updated"
     assert js("document.querySelector('.gifrift-picker').hidden") is True
     browser.find_element("css selector", '[data-a-target="chat-input"]').send_keys(Keys.ENTER)

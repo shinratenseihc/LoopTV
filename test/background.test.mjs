@@ -33,6 +33,12 @@ test("background blocks unrelated sites and unknown actions", async () => {
   assert.equal(await send({type:"klipy",action:"browse",query:"cat",pos:""}, {url:"https://not-twitch.invalid"}), null);
   assert.equal((await send({type:"klipy",action:"invalid"})).error,"invalid-action");
   assert.equal((await send({type:"klipy",action:"browse",query:null,pos:""})).error,"invalid-query");
+  const cyan = {url:"https://chat.johnnycyan.com/v2/?channel=test"};
+  assert.equal((await send({type:"klipy",action:"browse",query:"cat",pos:""},cyan)).error,"invalid-action");
+  assert.deepEqual((await send({type:"klipy",action:"resolve",ids:["123456"]},cyan)),
+    {gifs:[{id:"123456"}]});
+  assert.equal(await send({type:"klipy",action:"resolve",ids:["123456"]},
+    {url:"https://chat.johnnycyan.com.evil.invalid/v2/?channel=test"}), null);
 });
 
 test("background deduplicates concurrent identical requests", async () => {

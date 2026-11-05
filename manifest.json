@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "LoopTV",
   "version": "0.8.0",
-  "description": "De vrais GIFs animés KLIPY dans le chat Twitch.",
+  "description": "De vrais GIFs animés KLIPY dans Twitch et Cyan Chat.",
   "action": {
     "default_title": "LoopTV · LTV",
     "default_popup": "popup.html"
@@ -20,6 +20,11 @@
     "matches": ["https://www.twitch.tv/*"],
     "js": ["name-paints.js", "twitch.js"],
     "css": ["twitch.css", "name-paints.css"],
+    "run_at": "document_idle"
+  }, {
+    "matches": ["https://chat.johnnycyan.com/v2/*"],
+    "js": ["cyan-chat.js"],
+    "css": ["cyan-chat.css"],
     "run_at": "document_idle"
   }],
   "web_accessible_resources": [{

@@ -1,0 +1,11 @@
+/* LoopTV inline GIFs for Cyan Chat / TransparentTwitchChat overlays. */
+#chat_container .message .looptv-cyan-gif {
+  display: inline-block;
+  vertical-align: middle;
+  max-width: min(180px, 90vw);
+  max-height: 140px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 6px;
+}

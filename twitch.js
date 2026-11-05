@@ -1,8 +1,8 @@
 (() => {
   "use strict";
   const ID = /^\d{1,32}$/;
-  const MARKER = /^\[gifrift:k:(\d{1,32})\]$/;
-  const DEMO = "[gifrift:demo]";
+  const MARKER = /^\[(?:ltv|gifrift):k:(\d{1,32})\]$/;
+  const DEMO = /^\[(?:ltv|gifrift):demo\]$/;
   const MAX_GIFS = 6;
   const INPUT_SELECTOR = '[data-a-target="chat-input"][contenteditable="true"], [data-a-target="chat-input"] [contenteditable="true"]';
   const BUTTONS_SELECTOR = '[data-test-selector="chat-input-buttons-container"]';
@@ -26,7 +26,7 @@
   let lastChannel = location.pathname.split("/")[1] ?? "";
 
   function readMarker(text) {
-    if (text === DEMO) return { provider: "demo", id: "demo" };
+    if (typeof text === "string" && DEMO.test(text)) return { provider: "demo", id: "demo" };
     const id = typeof text === "string" ? MARKER.exec(text)?.[1] : null;
     return id ? { provider: "klipy", id } : null;
   }
@@ -162,7 +162,7 @@
         img.referrerPolicy = "no-referrer";
         choice.append(img);
         choice.addEventListener("click", () => {
-          const ok = insertMarker(document.querySelector(INPUT_SELECTOR), `[gifrift:k:${gif.id}]`);
+          const ok = insertMarker(document.querySelector(INPUT_SELECTOR), `[ltv:k:${gif.id}]`);
           if (ok) closePicker();
           else status.textContent = "Efface d’abord ton message actuel.";
         });
