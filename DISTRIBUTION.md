@@ -11,7 +11,7 @@ Le script vérifie la présence du fichier local `klipy-config.js` et des ressou
 | `dist/LoopTV-0.7.0-chromium.zip` | Chrome Web Store, Edge Add-ons, utilisateurs Brave via Chrome Web Store |
 | `dist/LoopTV-0.7.0-firefox.zip` | Source d'extension à signer sur addons.mozilla.org |
 
-Les ZIP ont **une clé KLIPY d'application incluse**, donc seuls les distribuer à des testeurs de confiance ou sur les stores une fois la décision prise. Les ZIP et leur clé ne sont pas versionnés. La clé n'est pas un secret OAuth et elle est extractible d'une extension distribuée.
+Les ZIP ont **une clé KLIPY d'application incluse** pour la bêta publique. Les ZIP et leur clé ne sont pas versionnés dans Git, mais la clé est **extractible par tout destinataire de l'archive**. Elle ne doit jamais être traitée comme un secret OAuth ou un secret serveur. Le quota est commun aux utilisateurs.
 
 ## Tester sans publier
 
@@ -29,6 +29,8 @@ Vérifications automatiques sans message Twitch ni appel KLIPY : `npm test`, `py
 
 ## Distribution publique
 
+**En attendant les stores :** les ZIP configurés sont fournis comme fichiers de [GitHub Releases](https://github.com/shinratenseihc/LoopTV/releases/latest) avec un [petit tuto d'installation](INSTALL.md). Le dépôt GitHub contient le code source **sans la clé KLIPY**. Une archive automatique « Source code (zip) » de GitHub n'est donc **pas** l'archive prête à installer.
+
 1. **Chrome Web Store** : créer un compte développeur Chrome Web Store, soumettre le ZIP Chromium, captures d'écran, description, informations sur l'usage des données et le fonctionnement de KLIPY. Les mises à jour passent par le store.
 2. **Brave** : les utilisateurs peuvent installer l'extension publiée sur le Chrome Web Store. Pas de paquet Brave séparé.
 3. **Edge Add-ons** : soumettre le même ZIP Chromium dans Microsoft Partner Center (Edge Add-ons), avec ses informations de confidentialité. La revue Edge est distincte.
@@ -43,7 +45,7 @@ Une soumission ne garantit pas l'acceptation par les stores. Le nom de dépôt l
 - Nom public : **LoopTV (LTV)**, version 0.7.0.
 - Description : « Affiche des GIFs animés KLIPY dans le chat Twitch ; les spectateurs équipés voient les animations, les autres voient un marqueur texte. »
 - Icônes d'extension dans `icons/`, captures d'écran réelles de l'interface Twitch (non encore préparées).
-- Notice [PRIVACY.md](PRIVACY.md), hébergée sur une URL publique stable au moment de la soumission. Le dépôt GitHub est actuellement privé.
+- Notice [PRIVACY.md](PRIVACY.md), accessible publiquement depuis le dépôt GitHub et à communiquer aux stores.
 - Déclarer exactement les permissions, la transmission des termes de recherche à KLIPY, le chargement des médias depuis son CDN et l'absence de suivi/compte LoopTV.
 - La modération synchronisée par chaîne et le blocage partagé des GIFs ne sont **pas encore implémentés**. Ne pas les annoncer.
 

@@ -6,9 +6,15 @@
 
 Extension Manifest V3 affichant de **vrais GIFs animés** dans le chat Twitch, sans abonnement Twitch, compte LoopTV ni clé individuelle. Aucun framework ni dépendance npm. Le nom du projet était GIFRIFT ; les marqueurs historiques `[gifrift:k:ID]` restent inchangés pour la compatibilité.
 
+## 📦 Télécharger LoopTV
+
+**[Télécharger la dernière version sur GitHub Releases](https://github.com/shinratenseihc/LoopTV/releases/latest)** · **[Guide d'installation (Chrome / Brave / Edge / Firefox)](INSTALL.md)**
+
+La bêta s'installe manuellement sur Chrome, Brave et Edge. Sous Firefox, l'installation depuis GitHub est **temporaire** jusqu'à la signature Mozilla. **Chrome Web Store n'est pas utilisé pour cette bêta.**
+
 ## Utiliser
 
-1. Ouvrir `chrome://extensions`, actualiser **LoopTV** (dossier `F:\AI Projects\GIFRIFT`) et recharger l'onglet Twitch.
+1. Installe LoopTV avec le [guide](INSTALL.md), puis recharge l'onglet Twitch.
 2. Cliquer sur **GIF** sous la saisie Twitch. La recherche KLIPY apparaît juste au-dessus du champ, de la largeur du chat.
 3. Rechercher un GIF ou parcourir les GIFs proposés ; faire défiler la grille avec la molette. **Voir plus** charge la page suivante à la demande.
 4. Cliquer sur l'image. LoopTV prépare `[gifrift:k:ID]` dans l'éditeur Twitch ; l'utilisateur appuie sur **Entrée** pour envoyer.
