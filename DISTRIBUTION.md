@@ -42,6 +42,8 @@ Une soumission ne garantit pas l'acceptation par les stores. Le nom de dépôt l
 
 ## À préparer pour le formulaire de chaque store
 
+Textes pour les formulaires : [STORE_LISTINGS.md](STORE_LISTINGS.md) (anglais et français, descriptions, permissions et notes aux reviewers).
+
 - Nom public : **LoopTV (LTV)**, version 0.7.0.
 - Description : « Affiche des GIFs animés KLIPY dans le chat Twitch ; les spectateurs équipés voient les animations, les autres voient un marqueur texte. »
 - Icônes d'extension dans `icons/`, captures d'écran réelles de l'interface Twitch (non encore préparées).
