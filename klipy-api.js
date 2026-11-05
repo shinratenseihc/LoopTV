@@ -1,6 +1,6 @@
 // Tenor-compatible KLIPY v2, GIFs only. No persistent data or third-party SDK.
 export const KLIPY_ID = /^\d{1,32}$/;
-export const KLIPY_MARKER = /^\[gifrift:k:(\d{1,32})\]$/;
+export const KLIPY_MARKER = /^\[(?:ltv|gifrift):k:(\d{1,32})\]$/;
 const API_ROOT = "https://api.klipy.com/v2/";
 const FORMATS = "gif,tinygif";
 const PAGE_SIZE = 12;

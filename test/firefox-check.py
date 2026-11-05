@@ -11,7 +11,8 @@ from selenium.webdriver.firefox.options import Options
 
 
 root = Path(__file__).resolve().parents[1]
-archive = root / "dist" / "LoopTV-0.7.0-firefox.zip"
+version = json.loads((root / "manifest.json").read_text(encoding="utf-8"))["version"]
+archive = root / "dist" / f"LoopTV-{version}-firefox.zip"
 if not archive.exists():
     raise SystemExit("Build Firefox absent : lancer npm run build")
 

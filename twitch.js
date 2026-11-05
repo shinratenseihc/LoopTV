@@ -1,8 +1,8 @@
 (() => {
   "use strict";
   const ID = /^\d{1,32}$/;
-  const MARKER = /^\[gifrift:k:(\d{1,32})\]$/;
-  const DEMO = "[gifrift:demo]";
+  const MARKER = /^\[(?:ltv|gifrift):k:(\d{1,32})\]$/;
+  const DEMO = /^\[(?:ltv|gifrift):demo\]$/;
   const MAX_GIFS = 6;
   const INPUT_SELECTOR = '[data-a-target="chat-input"][contenteditable="true"], [data-a-target="chat-input"] [contenteditable="true"]';
   const BUTTONS_SELECTOR = '[data-test-selector="chat-input-buttons-container"]';
@@ -12,7 +12,11 @@
   const failed = new Set();
   const pendingInputs = new WeakSet();
   let enabled = true;
-  let allowMotion = false;
+  let allowMotion = true;
+  let namePaintsEnabled = true;
+  let namePaintsAnimated = true;
+  let namePaintTarget = "";
+  let namePaintPalette = "auto";
   let queued = false;
   let knownInput = null;
   let knownButton = null;
@@ -22,7 +26,7 @@
   let lastChannel = location.pathname.split("/")[1] ?? "";
 
   function readMarker(text) {
-    if (text === DEMO) return { provider: "demo", id: "demo" };
+    if (typeof text === "string" && DEMO.test(text)) return { provider: "demo", id: "demo" };
     const id = typeof text === "string" ? MARKER.exec(text)?.[1] : null;
     return id ? { provider: "klipy", id } : null;
   }
@@ -158,7 +162,7 @@
         img.referrerPolicy = "no-referrer";
         choice.append(img);
         choice.addEventListener("click", () => {
-          const ok = insertMarker(document.querySelector(INPUT_SELECTOR), `[gifrift:k:${gif.id}]`);
+          const ok = insertMarker(document.querySelector(INPUT_SELECTOR), `[ltv:k:${gif.id}]`);
           if (ok) closePicker();
           else status.textContent = "Efface d’abord ton message actuel.";
         });
@@ -284,6 +288,12 @@
       failed.clear();
       closePicker();
     }
+    globalThis.LoopTVNamePaints.sync(document, {
+      enabled: namePaintsEnabled,
+      animated: namePaintsAnimated,
+      targetName: namePaintTarget,
+      paletteId: namePaintPalette
+    });
     const input = document.querySelector(INPUT_SELECTOR);
     const bar = document.querySelector(BUTTONS_SELECTOR);
     const send = bar?.querySelector('[data-a-target="chat-send-button"]');
@@ -351,15 +361,24 @@
     requestAnimationFrame(update);
   }
   motion.addEventListener("change", schedule);
-  chrome.storage.local.get({ enabled: true, allowMotion: false }, settings => {
+  chrome.storage.local.get({ enabled: true, allowMotion: true, namePaintsEnabled: true, namePaintsAnimated: true,
+    namePaintTarget: "", namePaintPalette: "auto" }, settings => {
     enabled = settings.enabled !== false;
-    allowMotion = settings.allowMotion === true;
+    allowMotion = settings.allowMotion !== false;
+    namePaintsEnabled = settings.namePaintsEnabled !== false;
+    namePaintsAnimated = settings.namePaintsAnimated !== false;
+    namePaintTarget = typeof settings.namePaintTarget === "string" ? settings.namePaintTarget : "";
+    namePaintPalette = typeof settings.namePaintPalette === "string" ? settings.namePaintPalette : "auto";
     schedule();
   });
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== "local") return;
     if (changes.enabled) enabled = changes.enabled.newValue !== false;
-    if (changes.allowMotion) allowMotion = changes.allowMotion.newValue === true;
+    if (changes.allowMotion) allowMotion = changes.allowMotion.newValue !== false;
+    if (changes.namePaintsEnabled) namePaintsEnabled = changes.namePaintsEnabled.newValue !== false;
+    if (changes.namePaintsAnimated) namePaintsAnimated = changes.namePaintsAnimated.newValue !== false;
+    if (changes.namePaintTarget) namePaintTarget = typeof changes.namePaintTarget.newValue === "string" ? changes.namePaintTarget.newValue : "";
+    if (changes.namePaintPalette) namePaintPalette = typeof changes.namePaintPalette.newValue === "string" ? changes.namePaintPalette.newValue : "auto";
     schedule();
   });
   new MutationObserver(schedule).observe(document.documentElement, {
