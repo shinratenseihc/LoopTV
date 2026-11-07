@@ -49,19 +49,20 @@ try:
           }
         },
         storage: {
-          local: {get: (_, callback) => callback({enabled:true,allowMotion:false})},
+          local: {get: (defaults, callback) => callback({...defaults,enabled:true})},
           onChanged: {addListener:listener => window.notifyStorage=listener}
         }
       };
-      const script=document.createElement('script');
-      script.src='/twitch.js';
-      document.body.append(script);
+      const paints=document.createElement('script');
+      paints.src='/name-paints.js';
+      paints.onload=()=>{const script=document.createElement('script');script.src='/twitch.js';document.body.append(script);};
+      document.body.append(paints);
     """)
     time.sleep(.3)
     js = lambda statement: browser.execute_script("return " + statement)
     count = lambda: js("document.querySelectorAll('.gifrift-media').length")
     assert count() == 1, "Original demo should still render"
-    assert js("document.querySelector('#fixture-chat .text-fragment').hidden") is True
+    assert js("[...document.querySelectorAll('#fixture-chat .text-fragment')].find(el=>el.textContent==='[gifrift:demo]').hidden") is True
     assert js("document.querySelectorAll('.gifrift-button').length") == 1
     assert js("document.querySelector('.gifrift-button').nextElementSibling.contains(document.querySelector('[data-a-target=chat-send-button]'))"), "GIF must be the left sibling of Chat inside its own group"
     assert js("document.querySelector('.gifrift-button').parentElement.classList.contains('gifrift-send-group')"), "GIF and Chat must form one wrapping group"
@@ -71,6 +72,61 @@ try:
     assert js("getComputedStyle(document.querySelector('.gifrift-button')).height") == "32px"
     assert js("getComputedStyle(document.querySelector('.gifrift-button')).borderRadius") == "9000px"
     assert js("getComputedStyle(document.querySelector('.gifrift-button')).backgroundColor") == "rgb(145, 71, 255)"
+
+    assert js("document.querySelectorAll('.looptv-name-paint').length") == 3
+    assert js("!document.querySelector('#paint-row .chat-line__username').classList.contains('looptv-name-paint')"), "Never apply paint to both Twitch username wrapper and leaf"
+    assert js("document.querySelectorAll('#paint-row .looptv-name-paint').length") == 1, "One painted element per author"
+    assert js("document.querySelector('#paint-row-alt [data-a-target=chat-message-username]').style.getPropertyValue('--looptv-name-gradient')") == js("LoopTVNamePaints.gradientFor('Viewer123','auto','rgb(0, 128, 255)')"), "Use computed CSS color when no inline color exists"
+    assert js("document.querySelector('#paint-row-legacy .chat-line__username').classList.contains('looptv-name-paint')"), "Support legacy markup with username wrapper only"
+    assert js("getComputedStyle(document.querySelector('#paint-row .chat-author__display-name')).backgroundImage.startsWith('linear-gradient')")
+    assert js("getComputedStyle(document.querySelector('#paint-row .chat-author__display-name')).webkitTextFillColor") == "rgba(0, 0, 0, 0)"
+    assert js("!document.querySelector('#paint-row .text-fragment').classList.contains('looptv-name-paint')"), "Message body must not be painted"
+    assert js("document.querySelector('#paint-row .chat-author__display-name').classList.contains('looptv-name-paint-motion')"), "Name paints must animate by default"
+    assert js("getComputedStyle(document.querySelector('#paint-row .chat-author__display-name')).animationName") == "looptv-name-flow"
+    assert browser.execute_script("""
+      const node = document.querySelector('#paint-row .chat-author__display-name');
+      const animation = node.getAnimations().find(item => item.animationName === 'looptv-name-flow');
+      if (!animation) return false;
+      animation.pause();
+      animation.currentTime = 100;
+      const a = getComputedStyle(node).backgroundPosition;
+      animation.currentTime = 2300;
+      const b = getComputedStyle(node).backgroundPosition;
+      animation.play();
+      return a !== b;
+    """), "Animated paint must change actual background position, not just set a class"
+    assert js("document.querySelector('#paint-row .chat-author__display-name').style.color") == 'rgb(255, 0, 0)', "Must preserve Twitch's native name color"
+    assert js("document.querySelector('#paint-row .chat-author__display-name').style.getPropertyValue('--looptv-name-gradient')") == js("LoopTVNamePaints.gradientFor('ShinraTensei','auto','rgb(255, 0, 0)')"), "Twitch's native color must determine the shared automatic gradient"
+    other_before = js("document.querySelector('#paint-row-alt [data-a-target=chat-message-username]').style.getPropertyValue('--looptv-name-gradient')")
+    browser.execute_script("window.notifyStorage({namePaintTarget:{newValue:'shinratensei'},namePaintPalette:{newValue:'lagoon'}},'local')")
+    time.sleep(.1)
+    assert js("document.querySelector('#paint-row .chat-author__display-name').style.getPropertyValue('--looptv-name-gradient')") == js("LoopTVNamePaints.gradientFor('ShinraTensei','lagoon')"), "Chosen palette applies to the selected name"
+    assert js("document.querySelector('#paint-row-alt [data-a-target=chat-message-username]').style.getPropertyValue('--looptv-name-gradient')") == other_before, "Other names keep their existing paints"
+    browser.execute_script("window.notifyStorage({namePaintPalette:{newValue:'plasma'}},'local')")
+    time.sleep(.1)
+    assert js("document.querySelector('#paint-row .chat-author__display-name').classList.contains('looptv-name-paint-glow')"), "Selected neon paint should glow"
+    browser.execute_script("window.notifyStorage({namePaintPalette:{newValue:'auto'}},'local')")
+    time.sleep(.1)
+    assert js("document.querySelector('#paint-row .chat-author__display-name').style.getPropertyValue('--looptv-name-gradient')") == js("LoopTVNamePaints.gradientFor('ShinraTensei','auto','rgb(255, 0, 0)')"), "Auto restores shared Twitch-derived palette"
+    browser.execute_script("document.querySelector('#paint-row .chat-author__display-name').style.color='rgb(0, 0, 255)'; document.body.append(document.createElement('hr'))")
+    time.sleep(.1)
+    assert js("document.querySelector('#paint-row .chat-author__display-name').style.getPropertyValue('--looptv-name-gradient')") == js("LoopTVNamePaints.gradientFor('ShinraTensei','auto','rgb(0, 0, 255)')"), "Twitch color updates the gradient without another service"
+    browser.execute_script("document.querySelector('#paint-row .chat-author__display-name').style.color='rgb(255, 0, 0)'; document.body.append(document.createElement('hr'))")
+    browser.execute_script("window.notifyStorage({namePaintsAnimated:{newValue:false}},'local')")
+    time.sleep(.1)
+    assert js("!document.querySelector('#paint-row .chat-author__display-name').classList.contains('looptv-name-paint-motion')"), "Motion toggle must stop gradients"
+    browser.execute_script("window.notifyStorage({namePaintsAnimated:{newValue:true}},'local')")
+    time.sleep(.1)
+    assert js("document.querySelector('#paint-row .chat-author__display-name').classList.contains('looptv-name-paint-motion')")
+    browser.execute_script("window.notifyStorage({namePaintsEnabled:{newValue:false}},'local')")
+    time.sleep(.1)
+    assert js("document.querySelectorAll('.looptv-name-paint').length") == 0, "Opt-out must remove paint styling"
+    browser.execute_script("window.notifyStorage({namePaintsEnabled:{newValue:true},namePaintsAnimated:{newValue:false}},'local')")
+    time.sleep(.1)
+    assert js("document.querySelectorAll('.looptv-name-paint').length") == 3
+    browser.execute_script("document.querySelector('#paint-row .chat-author__display-name').textContent='NewName'")
+    time.sleep(.1)
+    assert js("document.querySelector('#paint-row .chat-author__display-name').dataset.looptvPaintName") == "NewName", "Recycled rows need a fresh gradient"
 
     browser.find_element("css selector", ".gifrift-button").click()
     time.sleep(.2)
@@ -117,7 +173,7 @@ try:
     """)
     browser.find_element("css selector", ".gifrift-choice").click()
     time.sleep(.1)
-    marker = "[gifrift:k:2222222222222222]"
+    marker = "[ltv:k:2222222222222222]"
     assert js("window.fixtureState.text") == marker, "Slate model was not updated"
     assert js("document.querySelector('.gifrift-picker').hidden") is True
     browser.find_element("css selector", '[data-a-target="chat-input"]').send_keys(Keys.ENTER)
@@ -128,15 +184,24 @@ try:
       for (let n=0;n<100;n++) {
         const row=document.createElement('div');
         row.className='chat-line__message';
+        const outer=document.createElement('span');
+        outer.className='chat-line__username';
+        const author=document.createElement('span');
+        author.className='chat-author__display-name';
+        author.textContent='Viewer'+n;
+        author.style.color=n%2 ? 'rgb(255,105,180)' : 'rgb(100,150,255)';
+        outer.append(author);
         const text=document.createElement('span');
         text.className='text-fragment';
         text.textContent=n%2 ? 'message normal' : '[gifrift:k:1234567890123456]';
-        row.append(text);frag.append(row);
+        row.append(outer,text);frag.append(row);
       }
       document.querySelector('#fixture-chat').append(frag);
     """)
     time.sleep(.3)
     assert count() == 6, ("max six GIFs", count())
+    assert js("document.querySelectorAll('#fixture-chat .looptv-name-paint').length") == 103, "100 busy-chat usernames must be painted once each"
+    assert js("document.querySelectorAll('#fixture-chat .chat-line__username.looptv-name-paint').length") == 1, "Do not paint nested wrappers during chat bursts"
     before = js("window.apiRequests.filter(x=>x.action==='resolve').length")
     browser.execute_script("document.querySelector('#fixture-chat').append(document.createElement('p'))")
     time.sleep(.2)
@@ -146,13 +211,17 @@ try:
     browser.execute_script("document.querySelector('#fixture-chat').replaceChildren()")
     time.sleep(.2)
     assert count() == 0, "Deleting messages must delete images"
+    assert js("document.querySelectorAll('#fixture-chat .looptv-name-paint').length") == 0, "Removed users must not leave paint nodes behind"
     browser.execute_script("""
       const row=document.createElement('div');
       row.className='chat-line__message';
+      const author=document.createElement('span');
+      author.className='chat-author__display-name';
+      author.textContent='ShinraTensei';
       const text=document.createElement('span');
       text.className='text-fragment';
       text.textContent='[gifrift:k:1234567890123456]';
-      row.append(text);
+      row.append(author,text);
       document.querySelector('#fixture-chat').append(row);
     """)
     time.sleep(.2)
@@ -169,19 +238,26 @@ try:
         "features": [{"name": "prefers-reduced-motion", "value": "reduce"}]
     })
     time.sleep(.2)
-    assert count() == 0
-    browser.execute_script("window.notifyStorage({allowMotion:{newValue:true}},'local')")
-    time.sleep(.2)
-    assert count() == 1
+    assert count() == 1, "GIFs must animate by default even when Windows reduces motion"
+    browser.execute_script("window.notifyStorage({namePaintsAnimated:{newValue:true}},'local')")
+    time.sleep(.1)
+    assert js("document.querySelector('#fixture-chat .chat-author__display-name').classList.contains('looptv-name-paint-motion')"), "Explicit Name Paint animation setting overrides Windows reduced motion"
+    assert js("getComputedStyle(document.querySelector('#fixture-chat .chat-author__display-name')).animationName") == "looptv-name-flow"
+    browser.execute_script("window.notifyStorage({namePaintsAnimated:{newValue:false}},'local')")
+    time.sleep(.1)
+    assert js("getComputedStyle(document.querySelector('#fixture-chat .chat-author__display-name')).animationName") == "none", "User's motion opt-out always works"
     browser.execute_script("window.notifyStorage({allowMotion:{newValue:false}},'local')")
     time.sleep(.2)
-    assert count() == 0
+    assert count() == 0, "Explicit user motion opt-out must still work"
+    browser.execute_script("window.notifyStorage({allowMotion:{newValue:true}},'local')")
+    time.sleep(.2)
+    assert count() == 1, "Re-enabling GIF motion must restore animations"
     browser.execute_script("history.replaceState({},'', '/anotherchannel'); document.body.append(document.createElement('hr'));")
     time.sleep(.2)
     assert js("document.querySelector('.gifrift-picker').hidden") is True
     print(json.dumps({"picker":"integrated", "page_count":18, "slate":"enter works", "max_gifs":6,
         "deletion":True, "motion":True, "channel_change":True, "stale_search":True,
-        "draft_preserved":True}, ensure_ascii=False))
+        "draft_preserved":True, "name_paints":"selectable local palettes + native Twitch color + opt-out + motion"}, ensure_ascii=False))
 finally:
     browser.quit()
     server.shutdown()

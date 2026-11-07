@@ -1,0 +1,28 @@
+/* Only author names are targeted; normal messages and Twitch badges are untouched. */
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .looptv-name-paint {
+    display: inline-block;
+    background-image: var(--looptv-name-gradient);
+    background-size: 100% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: none;
+  }
+  .looptv-name-paint-glow {
+    filter: drop-shadow(0 0 3px var(--looptv-name-glow, #c58bff));
+  }
+  .looptv-name-paint-metal {
+    -webkit-text-stroke: .25px #ffffff5c;
+  }
+  .looptv-name-paint-motion {
+    /* Moving the gradient across two widths makes the shift clearly visible. */
+    background-size: 260% 100%;
+    animation: looptv-name-flow 3s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes looptv-name-flow {
+  from { background-position: 0% 50%; }
+  to { background-position: 100% 50%; }
+}

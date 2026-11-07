@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const dist = join(root, "dist");
-const files = ["background.js", "klipy-api.js", "klipy-config.js", "popup.html", "popup.js", "popup.css", "twitch.js", "twitch.css", "assets/demo.gif", "assets/looptv-logo.webp"];
+const files = ["background.js", "klipy-api.js", "klipy-config.js", "popup.html", "popup.js", "popup.css", "twitch.js", "twitch.css", "name-paints.js", "name-paints.css", "assets/demo.gif", "assets/looptv-logo.webp"];
 const icons = [16, 48, 96, 128].map(n => `icons/icon-${n}.png`);
 
 function createManifest(firefox) {
@@ -20,8 +20,9 @@ function createManifest(firefox) {
       gecko: {
         id: "looptv@shinratenseihc",
         strict_min_version: "140.0",
-        // Search terms go directly to KLIPY, never to a LoopTV-owned server.
-        data_collection_permissions: { required: ["searchTerms"] }
+        // GIF searches and numeric GIF IDs extracted from public Twitch chat
+        // are sent to KLIPY. Neither goes to a LoopTV-owned server.
+        data_collection_permissions: { required: ["searchTerms", "websiteContent"] }
       }
     };
   }
@@ -44,9 +45,16 @@ function packageExtension(firefox) {
   const version = JSON.parse(readFileSync(join(target, "manifest.json"), "utf8")).version;
   const zipPath = join(dist, `LoopTV-${version}-${targetName}.zip`);
   rmSync(zipPath, { force: true });
-  // Windows PowerShell supplies native ZIP packaging, no extra npm dependency.
-  const args = ["-NoProfile", "-NonInteractive", "-Command", "$src = $env:LOOPTV_DIST_SOURCE; $dst = $env:LOOPTV_DIST_ARCHIVE; Compress-Archive -Path (Join-Path $src '*') -DestinationPath $dst -Force"];
-  const result = spawnSync("powershell.exe", args, { encoding: "utf8", windowsHide: true, env: { ...process.env, LOOPTV_DIST_SOURCE: target, LOOPTV_DIST_ARCHIVE: zipPath } });
+  // Buildable on Windows and on the Linux environment used by AMO reviewers.
+  const windows = process.platform === "win32";
+  const command = windows ? "powershell.exe" : "zip";
+  const args = windows
+    ? ["-NoProfile", "-NonInteractive", "-Command", "$src = $env:LOOPTV_DIST_SOURCE; $dst = $env:LOOPTV_DIST_ARCHIVE; Compress-Archive -Path (Join-Path $src '*') -DestinationPath $dst -Force"]
+    : ["-q", "-r", zipPath, "."];
+  const result = spawnSync(command, args, {
+    cwd: target, encoding: "utf8", windowsHide: true,
+    env: { ...process.env, LOOPTV_DIST_SOURCE: target, LOOPTV_DIST_ARCHIVE: zipPath }
+  });
   if (result.status !== 0) throw new Error(`Échec ZIP ${targetName}: ${(result.stderr || result.stdout || "").trim()}`);
   return zipPath;
 }
@@ -64,7 +72,7 @@ function main() {
   mkdirSync(dist, { recursive: true });
   const archives = [packageExtension(false), packageExtension(true)];
   for (const archive of archives) console.log(`Créé : ${archive}`);
-  console.log("Clé incluse dans les archives privées, jamais affichée. Ne pas diffuser ces ZIP avant décision de publication.");
+  console.log("Clé bêta incluse dans les archives (extractible côté client), jamais affichée dans les logs.");
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();

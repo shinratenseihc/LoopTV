@@ -8,6 +8,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.keys import Keys
 
 options = Options()
 options.add_argument("--headless=new")
@@ -55,16 +56,72 @@ try:
     reduced = inspect()
     assert reduced["images"] == 0, reduced
     browser.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {"source": """
-      window.savedSettings = {};
+      window.savedSettings = JSON.parse(localStorage.getItem('looptv-test-settings') || '{}');
       window.chrome = {storage: {local: {
-        get: (_defaults, callback) => callback({enabled: true, allowMotion: false}),
-        set: async values => { Object.assign(window.savedSettings, values); }
+        get: (defaults, callback) => callback({ ...defaults, ...window.savedSettings }),
+        set: async values => {
+          Object.assign(window.savedSettings, values);
+          localStorage.setItem('looptv-test-settings', JSON.stringify(window.savedSettings));
+        }
       }}};
     """})
     browser.get(f"http://127.0.0.1:{server.server_port}/popup.html")
+    assert browser.find_element("id", "allow-motion").is_selected(), "GIF motion should be enabled by default"
+    browser.find_element("id", "allow-motion").click()
+    assert browser.execute_script("return window.savedSettings.allowMotion") is False, "User must be able to disable forced GIF motion"
     browser.find_element("id", "enabled").click()
     saved = browser.execute_script("return window.savedSettings.enabled")
     assert saved is False, "Settings were not saved"
+    assert browser.execute_script("return !document.querySelector('#panel-gifs').hidden"), "GIF tab should open by default"
+    browser.find_element("id", "tab-paints").click()
+    assert browser.execute_script("return document.querySelector('#panel-gifs').hidden && !document.querySelector('#panel-paints').hidden"), "Only paint settings should be visible"
+    assert browser.execute_script("return window.savedSettings.popupTab") == "paints", "Selected settings tab not saved"
+    browser.find_element("id", "tab-paints").send_keys(Keys.ARROW_LEFT)
+    assert browser.execute_script("return !document.querySelector('#panel-gifs').hidden"), "ArrowLeft should open the GIF settings tab"
+    browser.find_element("id", "tab-gifs").send_keys(Keys.ARROW_RIGHT)
+    assert browser.execute_script("return !document.querySelector('#panel-paints').hidden"), "ArrowRight should return to color settings"
+    assert browser.execute_script("return getComputedStyle(document.querySelector('#paint-preview-name')).backgroundImage.startsWith('linear-gradient')"), "Paint preview not rendered"
+    assert browser.execute_script("return document.querySelectorAll('.paint-palette-choice').length") == 49, "48 presets plus automatic choice expected"
+    assert browser.execute_script("""return (() => {
+      const choice = document.querySelector('.paint-palette-choice');
+      const sample = choice.querySelector('.paint-palette-choice-sample').getBoundingClientRect();
+      const label = choice.lastElementChild.getBoundingClientRect();
+      return label.top >= sample.bottom - 1;
+    })()"""), "Style preview and label must not overlap"
+    assert browser.find_element("id", "name-paints-animated").is_selected(), "Name gradients must animate by default"
+    assert browser.execute_script("return getComputedStyle(document.querySelector('#paint-preview-name')).animationName") == "looptv-name-flow", "Name gradients must animate even when Windows reduced-motion is enabled"
+    assert browser.execute_script("return document.querySelector('#paint-palette-list').scrollHeight > document.querySelector('#paint-palette-list').clientHeight"), "Large gallery must scroll inside its panel"
+    browser.find_element("id", "paint-search").send_keys("néon")
+    assert browser.execute_script("return document.querySelectorAll('.paint-palette-choice:not([hidden])').length") == 9, "Search should match names and accented group labels"
+    browser.find_element("id", "paint-search").send_keys(Keys.CONTROL, "a", Keys.BACKSPACE)
+    assert browser.execute_script("return document.querySelectorAll('.paint-palette-choice:not([hidden])').length") == 49, "Clearing search should restore all choices"
+    browser.find_element("id", "paint-preview-input").send_keys("ShinraTensei")
+    assert browser.execute_script("return window.savedSettings.namePaintTarget") == "ShinraTensei", "Name target not saved"
+    browser.find_element("css selector", '[data-palette-id="lagoon"]').click()
+    assert browser.execute_script("return window.savedSettings.namePaintPalette") == "lagoon", "Selected gradient not saved"
+    assert browser.execute_script("return document.querySelector('[data-palette-id=lagoon]').getAttribute('aria-pressed')") == "true", "Palette must be visibly selected"
+    assert browser.execute_script("return document.querySelector('#paint-preview-name').style.getPropertyValue('--looptv-name-gradient') === LoopTVNamePaints.gradientFor('ShinraTensei','lagoon')"), "Live palette preview incorrect"
+    browser.find_element("css selector", '[data-palette-id="plasma"]').click()
+    assert browser.execute_script("return document.querySelector('#paint-preview-name').classList.contains('looptv-name-paint-glow')"), "Glow effects must appear in preview"
+    assert browser.execute_script("return window.savedSettings.namePaintPalette") == "plasma"
+    browser.find_element("css selector", '[data-palette-id="chrome"]').click()
+    assert browser.execute_script("return document.querySelector('#paint-preview-name').classList.contains('looptv-name-paint-metal')"), "Metal effect must appear in preview"
+    browser.find_element("css selector", '[data-palette-id="plasma"]').click()
+    browser.find_element("id", "name-paints-animated").click()
+    assert browser.execute_script("return window.savedSettings.namePaintsAnimated") is False
+    assert browser.execute_script("return !document.querySelector('#paint-preview-name').classList.contains('looptv-name-paint-motion')"), "Animation toggle must disable motion"
+    browser.find_element("id", "name-paints-animated").click()
+    assert browser.execute_script("return window.savedSettings.namePaintsAnimated") is True
+    browser.find_element("id", "name-paints").click()
+    assert browser.execute_script("return window.savedSettings.namePaintsEnabled") is False, "Paint preference was not saved"
+    assert browser.execute_script("return !document.querySelector('#paint-preview-name').classList.contains('looptv-name-paint')"), "Paint preview off must be unstyled"
+    browser.refresh()
+    assert browser.execute_script("return document.querySelector('#tab-paints').getAttribute('aria-selected')") == "true", "Current tab must persist across popup reopening"
+    assert browser.execute_script("return document.querySelector('#paint-preview-input').value") == "ShinraTensei", "Target username must persist"
+    assert not browser.find_element("id", "allow-motion").is_selected(), "Explicitly disabled motion must persist"
+    assert browser.execute_script("return document.querySelector('[data-palette-id=plasma]').getAttribute('aria-pressed')") == "true", "Chosen palette must persist"
+    assert browser.find_element("id", "name-paints-animated").is_selected(), "Paint motion choice must persist"
+    assert browser.execute_script("return document.documentElement.scrollWidth <= window.innerWidth"), "Popup must fit horizontally"
     print(json.dumps({"initial": start, "disabled": off, "stress": loaded, "cleared": cleared, "reduced": reduced}, ensure_ascii=False))
 finally:
     browser.quit()

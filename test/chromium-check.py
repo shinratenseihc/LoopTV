@@ -58,8 +58,18 @@ for name, binary, option_class, factory in browsers:
                               "page_url": browser.current_url,
                               "extensions_page_text_preview": text[:400]}, ensure_ascii=False))
             raise AssertionError(name + " did not list LoopTV in the extension manager")
+        worker_seen = False
+        for _ in range(8):
+            targets = browser.execute_cdp_cmd("Target.getTargets", {})["targetInfos"]
+            worker_seen = any(t.get("type") == "service_worker" and
+                              t.get("url", "").endswith("/background.js") for t in targets)
+            if worker_seen:
+                break
+            time.sleep(0.25)
+        assert worker_seen, name + " did not start the LoopTV background service worker"
         print(json.dumps({"browser": name, "version": browser.capabilities.get("browserVersion"),
                           "unpacked_extension_listed": True,
+                          "service_worker_started": True,
                           "mode": "headless; no Twitch messages or API calls"}))
     finally:
         browser.quit()

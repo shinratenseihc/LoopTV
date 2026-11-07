@@ -1,30 +1,35 @@
-# LoopTV (LTV) v0.7.0 · KLIPY
+# LoopTV (LTV) v1.0.0 · GIFs KLIPY + Name Paints gratuits
 
 ![Logo officiel de LoopTV](assets/looptv-logo.webp)
 
 **Conçu par Shinra Tensei · Développé avec [Chat On Steroids](https://github.com/totec448-spec/chat-on-steroids)**
 
-Extension Manifest V3 affichant de **vrais GIFs animés** dans le chat Twitch, sans abonnement Twitch, compte LoopTV ni clé individuelle. Aucun framework ni dépendance npm. Le nom du projet était GIFRIFT ; les marqueurs historiques `[gifrift:k:ID]` restent inchangés pour la compatibilité.
+Extension Manifest V3 affichant de **vrais GIFs animés** dans le chat Twitch. Sans abonnement Twitch, compte LoopTV ni clé individuelle. Aucun framework ni dépendance npm. Le nom du projet était GIFRIFT ; les anciens marqueurs `[gifrift:k:ID]` restent **lisibles**, tandis que les nouveaux envois utilisent `[ltv:k:ID]`.
+
+**Nouveauté 1.0 :** Name Paints gratuits, **48 dégradés au choix + Auto**, styles néon/métal/pastel avec animations activées par défaut, galerie recherchable et aperçu. Le choix manuel d'un pseudo reste local ; aucune synchronisation de compte n'est prétendue. **[Détails et limites](NAME_PAINTS.md)**.
 
 ## 📦 Télécharger LoopTV
 
 **[Télécharger la dernière version sur GitHub Releases](https://github.com/shinratenseihc/LoopTV/releases/latest)** · **[Guide d'installation (Chrome / Brave / Edge / Firefox)](INSTALL.md)**
 
-La bêta s'installe manuellement sur Chrome, Brave et Edge. Sous Firefox, l'installation depuis GitHub est **temporaire** jusqu'à la signature Mozilla. **Chrome Web Store n'est pas utilisé pour cette bêta.**
+Sous Firefox, seule une **version signée et publiée sur [Mozilla Add-ons](https://addons.mozilla.org/)** permet l'installation permanente avec mises à jour automatiques. Tant que la page AMO de LoopTV n'est pas officiellement ouverte, le ZIP GitHub ne constitue pas une installation Firefox permanente. Chrome Web Store n'est pas prioritaire.
 
 ## Utiliser
 
 1. Installe LoopTV avec le [guide](INSTALL.md), puis recharge l'onglet Twitch.
 2. Cliquer sur **GIF** sous la saisie Twitch. La recherche KLIPY apparaît juste au-dessus du champ, de la largeur du chat.
 3. Rechercher un GIF ou parcourir les GIFs proposés ; faire défiler la grille avec la molette. **Voir plus** charge la page suivante à la demande.
-4. Cliquer sur l'image. LoopTV prépare `[gifrift:k:ID]` dans l'éditeur Twitch ; l'utilisateur appuie sur **Entrée** pour envoyer.
+4. Cliquer sur l'image. LoopTV prépare `[ltv:k:ID]` dans l'éditeur Twitch ; l'utilisateur appuie sur **Entrée** pour envoyer.
 
-Un spectateur disposant de **la même version configurée** de LoopTV résout l'ID directement via KLIPY, sans recherche préalable. Sans extension, le marqueur reste textuel. L'extension ne contourne pas les restrictions/bans Twitch et supprime l'image avec le message.
+Un spectateur disposant de **LoopTV 1.0** résout les nouveaux et anciens IDs directement via KLIPY, sans recherche préalable. **Attention : LoopTV 0.7.0 ne reconnaît pas les nouveaux marqueurs `[ltv:k:ID]`** et les affiche comme du texte. Sans extension, le marqueur reste textuel. L'extension ne contourne pas les restrictions/bans Twitch et supprime l'image avec le message.
 
-## Paquets bêta et publication
 
-- `npm run build` génère `dist/LoopTV-0.7.0-chromium.zip` (Chrome, Brave et Edge) et `dist/LoopTV-0.7.0-firefox.zip` (Firefox). Il inclut la configuration d'application locale **uniquement dans les archives**, jamais dans Git.
+## Paquets et publication
+
+- `npm run build` génère `dist/LoopTV-1.0.0-chromium.zip` (Chrome, Brave et Edge) et `dist/LoopTV-1.0.0-firefox.zip` (à soumettre à Mozilla). Il inclut la configuration d'application locale **uniquement dans les archives**, jamais dans Git.
 - Pour une installation de développement Chromium, ouvrir `chrome://extensions` (ou `brave://extensions`, `edge://extensions`), activer le mode développeur et **Charger l'extension non empaquetée** depuis `dist/chromium`.
+- **Important :** après `npm run build`, charger le dossier `dist/chromium` construit, pas une archive ZIP ni un dossier source téléchargé de GitHub. Le paquet contient `klipy-config.js`, nécessaire aux recherches GIF. Le service worker peut démarrer sans ce fichier, mais la recherche affiche alors « Configuration KLIPY absente ».
+- Si Chrome indique **« Service worker registration failed (Status code: 3) »**, vérifier le dossier de chargement dans `chrome://extensions`, puis recharger l'extension une fois le paquet correct sélectionné. Les fichiers `background.js`, `klipy-api.js` et `klipy-config.js` doivent être présents dans le paquet. Ne jamais publier le fichier de clé dans Git.
 - Pour Firefox, passer par `about:debugging` → Ce Firefox → Charger un module complémentaire temporaire et choisir `dist/firefox/manifest.json` ; il sera retiré au redémarrage. L'installation permanente nécessite une extension signée par Mozilla.
 - **Ne pas distribuer le ZIP Firefox comme une extension installable définitivement**. Faire signer l'extension via addons.mozilla.org pour un déploiement public ou non répertorié.
 - Détails, vérifications, stores et précautions : [DISTRIBUTION.md](DISTRIBUTION.md). Notice pour les utilisateurs : [PRIVACY.md](PRIVACY.md).
@@ -34,18 +39,18 @@ Un spectateur disposant de **la même version configurée** de LoopTV résout l'
 - **Ce dossier local contient `klipy-config.js`**, créé depuis la clé DPAPI du développeur. Il est ignoré par Git et chargé par le service worker.
 - Ce fichier n'est **pas** sur GitHub. Pour un autre environnement de développement, copier `klipy-config.example.js` vers `klipy-config.js` et y configurer **une seule clé d'application**.
 - Les spectateurs doivent recevoir un paquet d'extension **incluant `klipy-config.js`**, pas une archive brute du dépôt. Aucune interface ne leur demande une clé. La clé embarquée est techniquement visible dans l'extension distribuée : ne jamais l'assimiler à un secret OAuth.
-- **Clé de test/Beta : 100 appels/heure pour l'application**, acceptée pour la petite bêta. L'accès Production et les éventuels coûts se négocient séparément avec KLIPY.
+- **Attention, clé de test : 100 appels/heure partagés pour toute l'application**, ce qui limite concrètement la diffusion publique. Demander l'accès Production à KLIPY avant de faire la promotion de la 1.0 à grande échelle. Les éventuels coûts sont à confirmer auprès de KLIPY.
 - Pas de proxy, serveur ou backend LoopTV. La publication sur les stores reste une opération séparée.
 
 ## Sécurité et vie privée
 
-- Permissions Chrome limitées à `storage`, au site Twitch pour l'interface et à `https://api.klipy.com/*` pour les appels API. Médias affichés uniquement depuis des URL **HTTPS `static.klipy.com` renvoyées telles quelles par KLIPY**.
+- Permissions Chrome limitées à `storage`, aux scripts d'affichage sur Twitch et à `https://api.klipy.com/*` pour les appels API. Médias affichés uniquement depuis des URL **HTTPS `static.klipy.com` renvoyées telles quelles par KLIPY**.
 - Recherches et résolutions utilisent l'API KLIPY v2, avec `media_filter=gif,tinygif` (la route `posts` rejette `nanogif`), filtre de contenu `medium`, limite de 12 résultats et pagination explicite.
 - Ni pseudo, ni historique, ni texte de chat envoyé à KLIPY : uniquement recherche, pagination ou IDs des GIFs. **KLIPY reçoit néanmoins les requêtes et peut traiter les recherches, données techniques et adresses IP** selon sa politique.
 - Aucune télémétrie, publicité, collecte ou cache persistant ajouté par LoopTV. Seules les requêtes en cours identiques sont dédupliquées.
-- Six animations simultanées au maximum ; médias paresseusement chargés, taille/dimensions contrôlées, réduction du mouvement respectée par défaut et désactivation locale possible.
-- Le marqueur KLIPY `[gifrift:k:ID]` accepte uniquement un ID décimal. Les anciens marqueurs GIPHY `[gifrift:g:ID]` **restent du texte** ; aucune conversion arbitraire.
-- Attribution `Powered by KLIPY` visible dans le panneau et sous les GIFs, source/auteur lorsqu'ils sont fournis. La modération synchronisée par chaîne reste hors du périmètre de cette version ; ne pas annoncer une distribution publique définitive.
+- Six animations simultanées au maximum ; taille/dimensions contrôlées. Les **GIFs sont animés par défaut**, même si Windows active la réduction du mouvement ; l'utilisateur peut désactiver cette dérogation dans l'onglet GIFs. Les **Name Paints animés** ont leur propre réglage, actif par défaut.
+- Le nouveau marqueur KLIPY `[ltv:k:ID]` accepte uniquement un ID décimal. L'ancien `[gifrift:k:ID]` reste reconnu. Les marqueurs GIPHY `[gifrift:g:ID]` **restent du texte** ; aucune conversion arbitraire.
+- Attribution `Powered by KLIPY` visible dans le panneau et sous les GIFs, source/auteur lorsqu'ils sont fournis. La modération synchronisée par chaîne reste hors du périmètre de cette version. Les identifiants des GIFs extraits du chat sont transmis à KLIPY pour leur résolution : [confidentialité](PRIVACY.md).
 
 ## Vérifications
 

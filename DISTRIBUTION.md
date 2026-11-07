@@ -1,4 +1,4 @@
-# LoopTV 0.7.0 : bêta et publication
+# LoopTV 1.0.0 : construction et publication Firefox
 
 ## Construire les versions
 
@@ -8,10 +8,10 @@ Le script vérifie la présence du fichier local `klipy-config.js` et des ressou
 
 | Archive | Destinations |
 | --- | --- |
-| `dist/LoopTV-0.7.0-chromium.zip` | Chrome Web Store, Edge Add-ons, utilisateurs Brave via Chrome Web Store |
-| `dist/LoopTV-0.7.0-firefox.zip` | Source d'extension à signer sur addons.mozilla.org |
+| `dist/LoopTV-1.0.0-chromium.zip` | Paquet Chromium non signé, installation manuelle pour l'instant |
+| `dist/LoopTV-1.0.0-firefox.zip` | À soumettre sur addons.mozilla.org pour signature et référencement |
 
-Les ZIP ont **une clé KLIPY d'application incluse** pour la bêta publique. Les ZIP et leur clé ne sont pas versionnés dans Git, mais la clé est **extractible par tout destinataire de l'archive**. Elle ne doit jamais être traitée comme un secret OAuth ou un secret serveur. Le quota est commun aux utilisateurs.
+Les ZIP ont **une clé KLIPY de test incluse**. Les ZIP et leur clé ne sont pas versionnés dans Git, mais la clé est **extractible par tout destinataire de l'archive**. Elle ne doit jamais être traitée comme un secret OAuth ou un secret serveur. Le quota est commun aux utilisateurs.
 
 ## Tester sans publier
 
@@ -29,14 +29,12 @@ Vérifications automatiques sans message Twitch ni appel KLIPY : `npm test`, `py
 
 ## Distribution publique
 
-**En attendant les stores :** les ZIP configurés sont fournis comme fichiers de [GitHub Releases](https://github.com/shinratenseihc/LoopTV/releases/latest) avec un [petit tuto d'installation](INSTALL.md). Le dépôt GitHub contient le code source **sans la clé KLIPY**. Une archive automatique « Source code (zip) » de GitHub n'est donc **pas** l'archive prête à installer.
+**Tant que la fiche AMO n'est pas validée :** les ZIP configurés sont fournis via [GitHub Releases](https://github.com/shinratenseihc/LoopTV/releases/latest) et un [tutoriel d'installation](INSTALL.md). Le dépôt GitHub contient le code source **sans la clé KLIPY**. Une archive automatique « Source code (zip) » de GitHub n'est donc **pas** l'archive prête à installer.
 
-1. **Chrome Web Store** : créer un compte développeur Chrome Web Store, soumettre le ZIP Chromium, captures d'écran, description, informations sur l'usage des données et le fonctionnement de KLIPY. Les mises à jour passent par le store.
-2. **Brave** : les utilisateurs peuvent installer l'extension publiée sur le Chrome Web Store. Pas de paquet Brave séparé.
-3. **Edge Add-ons** : soumettre le même ZIP Chromium dans Microsoft Partner Center (Edge Add-ons), avec ses informations de confidentialité. La revue Edge est distincte.
-4. **Firefox / AMO** : soumettre le ZIP Firefox au portail Mozilla. Mozilla doit le signer pour installation permanente. Le manifeste Firefox contient un ID Gecko et déclare les recherches transmises à KLIPY. On peut utiliser la distribution non répertoriée et envoyer le XPI signé à des bêta-testeurs.
+1. **Firefox / AMO (priorité)** : se connecter sur https://addons.mozilla.org/developers/ ; choisir **On this site** (répertoriée), soumettre le ZIP Firefox, fournir la fiche, les informations de confidentialité, les notes de test et sélectionner Firefox desktop. Mozilla doit signer l'extension pour une installation permanente avec mises à jour automatiques.
+2. **Chrome, Brave et Edge (plus tard)** : les utilisateurs peuvent utiliser le paquet Chromium en mode développeur. La publication sur leurs stores n'est pas l'objet de cette sortie.
 
-**Frais et accès vérifiés :** Chrome demande des frais d'inscription développeur uniques (voir [documentation officielle](https://developer.chrome.com/docs/webstore/register)). Edge Add-ons ne facture pas l'inscription ([Microsoft](https://learn.microsoft.com/en-us/microsoft-edge/extensions-chromium/publish/create-dev-account)). Brave accepte la version du Chrome Web Store sans compte Brave supplémentaire ([Brave](https://brave.com/learn/using-chrome-extensions-in-brave/)). La signature des versions Firefox se fait via [Mozilla AMO](https://extensionworkshop.com/documentation/publish/signing-and-distribution-overview/).
+**Règles Mozilla :** [soumission officielle](https://extensionworkshop.com/documentation/publish/submitting-an-add-on/), [signature](https://extensionworkshop.com/documentation/publish/signing-and-distribution-overview/), [déclaration de données](https://extensionworkshop.com/documentation/develop/firefox-builtin-data-consent/). Le manifeste conserve `looptv@shinratenseihc` et Firefox 140 minimum ; il déclare les recherches et les IDs GIF extraits du chat (`searchTerms` et `websiteContent`).
 
 Une soumission ne garantit pas l'acceptation par les stores. Le nom de dépôt local `GIFRIFT` et les marqueurs historiques `[gifrift:k:ID]` restent inchangés pour la compatibilité technique.
 
@@ -44,18 +42,18 @@ Une soumission ne garantit pas l'acceptation par les stores. Le nom de dépôt l
 
 Textes pour les formulaires : [STORE_LISTINGS.md](STORE_LISTINGS.md) (anglais et français, descriptions, permissions et notes aux reviewers).
 
-- Nom public : **LoopTV (LTV)**, version 0.7.0.
+- Nom public : **LoopTV (LTV)**, version 1.0.0.
 - Description : « Affiche des GIFs animés KLIPY dans le chat Twitch ; les spectateurs équipés voient les animations, les autres voient un marqueur texte. »
-- Icônes d'extension dans `icons/`, captures d'écran réelles de l'interface Twitch (non encore préparées).
+- Icônes d'extension dans `icons/`, captures d'écran réelles de l'interface Twitch si disponibles.
 - Notice [PRIVACY.md](PRIVACY.md), accessible publiquement depuis le dépôt GitHub et à communiquer aux stores.
-- Déclarer exactement les permissions, la transmission des termes de recherche à KLIPY, le chargement des médias depuis son CDN et l'absence de suivi/compte LoopTV.
+- Déclarer exactement les permissions, les recherches et **les identifiants numériques extraits du chat Twitch** transmis à KLIPY, les médias du CDN et l'absence de suivi/compte LoopTV.
 - La modération synchronisée par chaîne et le blocage partagé des GIFs ne sont **pas encore implémentés**. Ne pas les annoncer.
 
 ## Quota KLIPY et coût
 
-Le mode test accepte **100 requêtes API par heure pour toute la clé**. Une recherche, une page suivante et une résolution d'ID consomment chacune des appels. Quand dix personnes reçoivent le même ID, cela peut produire plusieurs résolutions séparées : le cache actuel déduplique seulement les appels simultanés dans un même navigateur.
+La clé de test accepte **100 requêtes API par heure pour toute la clé**. Une recherche, une page suivante et une résolution d'ID consomment chacune des appels. Quand dix personnes reçoivent le même ID, cela peut produire plusieurs résolutions séparées : la déduplication actuelle concerne seulement les appels simultanés dans un même navigateur.
 
-L'utilisateur accepte cette limite pour une petite bêta. Pas de proxy, pas de clé individuelle et pas de demande Production nécessaire pour faire tester la version actuelle. Si l'audience dépasse régulièrement le quota, consulter le [Partner Panel](https://klipy.com/developers) pour les conditions de Production. Ne pas présumer que les droits Production sont gratuits.
+**Risque de lancement public 1.0 :** ce quota n'est pas adapté à une audience importante. Demander une clé Production dans le [Partner Panel](https://klipy.com/developers) avant une large promotion. Les [conditions KLIPY](https://klipy.com/support/api-terms) imposent une attribution et limitent la mise en cache des médias. Ne pas présumer du coût de l'accès Production. La clé intégrée au navigateur reste récupérable même si elle n'apparaît pas dans Git.
 
 ## Crédits
 

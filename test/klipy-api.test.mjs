@@ -25,7 +25,8 @@ const client = createKlipyClient("TESTKEYONLY1234", mockFetch);
 
 test("real Twitch marker parser accepts only canonical KLIPY IDs, not GIPHY", () => {
   assert.equal(parseKlipyMarker(`[gifrift:k:${id}]`), id);
-  for (const text of ["[gifrift:g:AbCd1234]", "[gifrift:k:abc]", "[gifrift:k:01] extra", "[gifrift:k:1<script>]", `[gifrift:k:${"1".repeat(33)}]`]) {
+  assert.equal(parseKlipyMarker(`[ltv:k:${id}]`), id);
+  for (const text of ["[gifrift:g:AbCd1234]", "[gifrift:k:abc]", "[ltv:g:AbCd1234]", "[ltv:k:abc]", "[ltv:k:01] extra", "[gifrift:k:01] extra", "[gifrift:k:1<script>]", `[ltv:k:${"1".repeat(33)}]`]) {
     assert.equal(parseKlipyMarker(text), null);
   }
 });
@@ -74,6 +75,7 @@ test("rejects unsafe media, static/sticker and oversized dimensions/sizes", () =
   assert.equal(normalizeKlipy({...gif, media_formats:{...gif.media_formats,tinygif:{...gif.media_formats.tinygif,size:1000001}}}), null);
   assert.equal(normalizeKlipy({...gif, media_formats:{...gif.media_formats,tinygif:{...gif.media_formats.tinygif,url:"https://evil.com/tiny.gif"}}}), null);
   assert.equal(normalizeKlipy({...gif, media_formats:{...gif.media_formats,tinygif:{...gif.media_formats.tinygif,url:"https://static.klipy.com.evil.com/tiny.gif"}}}), null);
+  assert.equal(normalizeKlipy({...gif, media_formats:{...gif.media_formats,tinygif:{...gif.media_formats.tinygif,url:"https://static.klipy.com:444/tiny.gif"}}}), null);
   assert.equal(normalizeKlipy({...gif, media_formats:{...gif.media_formats,tinygif:{...gif.media_formats.tinygif,dims:[99999,100]}}}), null);
 });
 

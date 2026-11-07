@@ -1,17 +1,34 @@
-import { KLIPY_APP_KEY } from "./klipy-config.js";
 import { createKlipyClient } from "./klipy-api.js";
 
-const client = createKlipyClient(KLIPY_APP_KEY);
+// The application key is optional in a source checkout. Loading an unpacked
+// repository must not prevent the service worker from registering when the
+// git-ignored configuration file is absent. Packaged builds include this file.
+const clientReady = fetch(chrome.runtime.getURL("klipy-config.js"))
+  .then(response => response.ok ? response.text() : "")
+  .then(source => {
+    const key = /^\s*export\s+const\s+KLIPY_APP_KEY\s*=\s*(['"])([^'"]+)\1\s*;?\s*$/m.exec(source)?.[2] ?? "";
+    return createKlipyClient(key);
+  })
+  .catch(() => createKlipyClient(""));
 const inflight = new Map();
 
+function isTwitchSender(sender) {
+  if (typeof sender?.url !== "string") return false;
+  try {
+    return new URL(sender.url).origin === "https://www.twitch.tv";
+  } catch {
+    return false;
+  }
+}
+
 chrome.runtime.onMessage.addListener((message, sender, respond) => {
-  if (message?.type !== "klipy" || !sender.url?.startsWith("https://www.twitch.tv/")) return;
+  if (message?.type !== "klipy" || !isTwitchSender(sender)) return;
   let task;
   if (message.action === "browse") {
     if (typeof message.query !== "string" || typeof message.pos !== "string") return respond({ error: "invalid-query" }), false;
-    task = () => client.browse(message.query, message.pos);
+    task = () => clientReady.then(client => client.browse(message.query, message.pos));
   } else if (message.action === "resolve") {
-    task = () => client.resolve(message.ids);
+    task = () => clientReady.then(client => client.resolve(message.ids));
   } else return respond({ error: "invalid-action" }), false;
   // Deduplicate same in-flight search/ID resolutions only; no persistent caching.
   const scope = message.action === "browse"

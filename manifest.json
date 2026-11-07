@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "LoopTV",
-  "version": "0.7.0",
+  "version": "1.0.0",
   "description": "De vrais GIFs animés KLIPY dans le chat Twitch.",
   "action": {
     "default_title": "LoopTV · LTV",
@@ -18,8 +18,8 @@
   "background": { "service_worker": "background.js", "type": "module" },
   "content_scripts": [{
     "matches": ["https://www.twitch.tv/*"],
-    "js": ["twitch.js"],
-    "css": ["twitch.css"],
+    "js": ["name-paints.js", "twitch.js"],
+    "css": ["twitch.css", "name-paints.css"],
     "run_at": "document_idle"
   }],
   "web_accessible_resources": [{
