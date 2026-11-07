@@ -75,6 +75,7 @@ test("rejects unsafe media, static/sticker and oversized dimensions/sizes", () =
   assert.equal(normalizeKlipy({...gif, media_formats:{...gif.media_formats,tinygif:{...gif.media_formats.tinygif,size:1000001}}}), null);
   assert.equal(normalizeKlipy({...gif, media_formats:{...gif.media_formats,tinygif:{...gif.media_formats.tinygif,url:"https://evil.com/tiny.gif"}}}), null);
   assert.equal(normalizeKlipy({...gif, media_formats:{...gif.media_formats,tinygif:{...gif.media_formats.tinygif,url:"https://static.klipy.com.evil.com/tiny.gif"}}}), null);
+  assert.equal(normalizeKlipy({...gif, media_formats:{...gif.media_formats,tinygif:{...gif.media_formats.tinygif,url:"https://static.klipy.com:444/tiny.gif"}}}), null);
   assert.equal(normalizeKlipy({...gif, media_formats:{...gif.media_formats,tinygif:{...gif.media_formats.tinygif,dims:[99999,100]}}}), null);
 });
 

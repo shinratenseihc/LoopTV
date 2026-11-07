@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "LoopTV",
-  "version": "0.8.0",
+  "version": "1.0.0",
   "description": "De vrais GIFs animés KLIPY dans le chat Twitch.",
   "action": {
     "default_title": "LoopTV · LTV",

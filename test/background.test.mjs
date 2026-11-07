@@ -21,7 +21,7 @@ const script = readFileSync(new URL("../background.js", import.meta.url), "utf8"
   .replace(/^import .+;\s*$/gm, "");
 vm.runInNewContext(script, {
   chrome, fetch: async () => ({ok:true, text: async () => 'export const KLIPY_APP_KEY = "FAKEKEY";'}),
-  createKlipyClient: key => { assert.equal(key,"FAKEKEY"); return fakeClient; }, Map, JSON, Promise
+  createKlipyClient: key => { assert.equal(key,"FAKEKEY"); return fakeClient; }, Map, JSON, Promise, URL
 });
 
 const send = (message, sender = {url:"https://www.twitch.tv/channel"}) =>
@@ -35,6 +35,14 @@ test("background blocks unrelated sites and unknown actions", async () => {
   assert.equal((await send({type:"klipy",action:"browse",query:null,pos:""})).error,"invalid-query");
   assert.equal(await send({type:"klipy",action:"resolve",ids:["123456"]},
     {url:"https://chat.johnnycyan.com/v2/?channel=test"}), null);
+  assert.equal(await send({type:"klipy",action:"browse",query:"cat",pos:""},
+    {url:"https://www.twitch.tv.evil.example/channel"}), null);
+  assert.equal(await send({type:"klipy",action:"browse",query:"cat",pos:""},
+    {url:"https://www.twitch.tv@evil.example/channel"}), null);
+  assert.equal(await send({type:"klipy",action:"browse",query:"cat",pos:""},
+    {url:"https://www.twitch.tv:8443/channel"}), null);
+  assert.equal(await send({type:"klipy",action:"browse",query:"cat",pos:""},
+    {url:"malformed-url"}), null);
 });
 
 test("background deduplicates concurrent identical requests", async () => {
@@ -61,7 +69,7 @@ test("missing git-ignored KLIPY config does not prevent worker registration", as
       seenKey = key;
       return {browse: async () => ({error:"missing-key"}), resolve: async () => ({error:"missing-key"})};
     },
-    Map, JSON, Promise
+    Map, JSON, Promise, URL
   });
   const result = await new Promise(resolve => {
     assert.equal(noConfigHandler({type:"klipy",action:"browse",query:"cat",pos:""},

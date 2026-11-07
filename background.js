@@ -12,8 +12,17 @@ const clientReady = fetch(chrome.runtime.getURL("klipy-config.js"))
   .catch(() => createKlipyClient(""));
 const inflight = new Map();
 
+function isTwitchSender(sender) {
+  if (typeof sender?.url !== "string") return false;
+  try {
+    return new URL(sender.url).origin === "https://www.twitch.tv";
+  } catch {
+    return false;
+  }
+}
+
 chrome.runtime.onMessage.addListener((message, sender, respond) => {
-  if (message?.type !== "klipy" || !sender.url?.startsWith("https://www.twitch.tv/")) return;
+  if (message?.type !== "klipy" || !isTwitchSender(sender)) return;
   let task;
   if (message.action === "browse") {
     if (typeof message.query !== "string" || typeof message.pos !== "string") return respond({ error: "invalid-query" }), false;
